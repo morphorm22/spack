@@ -1,4 +1,4 @@
-# Copyright 2013-2020 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2021 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -23,9 +23,12 @@ filesystem.
 import contextlib
 import datetime
 import os
+import six
 import socket
 import sys
 import time
+from typing import Dict  # novm
+
 try:
     import uuid
     _use_uuid = True
@@ -33,19 +36,25 @@ except ImportError:
     _use_uuid = False
     pass
 
+import llnl.util.filesystem as fs
 import llnl.util.tty as tty
-import six
+
 import spack.repo
 import spack.spec
 import spack.store
 import spack.util.lock as lk
 import spack.util.spack_json as sjson
-from llnl.util.filesystem import mkdirp
 from spack.directory_layout import DirectoryLayoutError
 from spack.error import SpackError
 from spack.filesystem_view import YamlFilesystemView
 from spack.util.crypto import bit_length
 from spack.version import Version
+
+
+@contextlib.contextmanager
+def nullcontext(*args, **kwargs):
+    yield
+
 
 # TODO: Provide an API automatically retyring a build after detecting and
 # TODO: clearing a failure.
@@ -85,6 +94,17 @@ _pkg_lock_timeout = None
 
 # Types of dependencies tracked by the database
 _tracked_deps = ('link', 'run')
+
+# Default list of fields written for each install record
+default_install_record_fields = [
+    'spec',
+    'ref_count',
+    'path',
+    'installed',
+    'explicit',
+    'installation_time',
+    'deprecated_for',
+]
 
 
 def _now():
@@ -186,17 +206,17 @@ class InstallRecord(object):
         else:
             return InstallStatuses.MISSING in installed
 
-    def to_dict(self):
-        rec_dict = {
-            'spec': self.spec.to_node_dict(),
-            'path': self.path,
-            'installed': self.installed,
-            'ref_count': self.ref_count,
-            'explicit': self.explicit,
-            'installation_time': self.installation_time,
-        }
-        if self.deprecated_for:
-            rec_dict.update({'deprecated_for': self.deprecated_for})
+    def to_dict(self, include_fields=default_install_record_fields):
+        rec_dict = {}
+
+        for field_name in include_fields:
+            if field_name == 'spec':
+                rec_dict.update({'spec': self.spec.node_dict_with_hashes()})
+            elif field_name == 'deprecated_for' and self.deprecated_for:
+                rec_dict.update({'deprecated_for': self.deprecated_for})
+            else:
+                rec_dict.update({field_name: getattr(self, field_name)})
+
         return rec_dict
 
     @classmethod
@@ -205,8 +225,11 @@ class InstallRecord(object):
         d.pop('spec', None)
 
         # Old databases may have "None" for path for externals
-        if d['path'] == 'None':
+        if 'path' not in d or d['path'] == 'None':
             d['path'] = None
+
+        if 'installed' not in d:
+            d['installed'] = False
 
         return InstallRecord(spec, **d)
 
@@ -268,13 +291,14 @@ _query_docstring = """
 class Database(object):
 
     """Per-process lock objects for each install prefix."""
-    _prefix_locks = {}
+    _prefix_locks = {}  # type: Dict[str, lk.Lock]
 
     """Per-process failure (lock) objects for each install prefix."""
-    _prefix_failures = {}
+    _prefix_failures = {}  # type: Dict[str, lk.Lock]
 
     def __init__(self, root, db_dir=None, upstream_dbs=None,
-                 is_upstream=False):
+                 is_upstream=False, enable_transaction_locking=True,
+                 record_fields=default_install_record_fields):
         """Create a Database for Spack installations under ``root``.
 
         A Database is a cache of Specs data from ``$prefix/spec.yaml``
@@ -292,6 +316,12 @@ class Database(object):
         Caller may optionally provide a custom ``db_dir`` parameter
         where data will be stored. This is intended to be used for
         testing the Database class.
+
+        This class supports writing buildcache index files, in which case
+        certain fields are not needed in each install record, and no
+        transaction locking is required.  To use this feature, provide
+        ``enable_transaction_locking=False``, and specify a list of needed
+        fields in ``record_fields``.
         """
         self.root = root
 
@@ -316,10 +346,10 @@ class Database(object):
 
         # Create needed directories and files
         if not os.path.exists(self._db_dir):
-            mkdirp(self._db_dir)
+            fs.mkdirp(self._db_dir)
 
         if not os.path.exists(self._failure_dir) and not is_upstream:
-            mkdirp(self._failure_dir)
+            fs.mkdirp(self._failure_dir)
 
         self.is_upstream = is_upstream
         self.last_seen_verifier = ''
@@ -355,14 +385,23 @@ class Database(object):
         # message)
         self._fail_when_missing_deps = False
 
+        if enable_transaction_locking:
+            self._write_transaction_impl = lk.WriteTransaction
+            self._read_transaction_impl = lk.ReadTransaction
+        else:
+            self._write_transaction_impl = nullcontext
+            self._read_transaction_impl = nullcontext
+
+        self._record_fields = record_fields
+
     def write_transaction(self):
         """Get a write lock context manager for use in a `with` block."""
-        return lk.WriteTransaction(
+        return self._write_transaction_impl(
             self.lock, acquire=self._read, release=self._write)
 
     def read_transaction(self):
         """Get a read lock context manager for use in a `with` block."""
-        return lk.ReadTransaction(self.lock, acquire=self._read)
+        return self._read_transaction_impl(self.lock, acquire=self._read)
 
     def _failed_spec_path(self, spec):
         """Return the path to the spec's failure file, which may not exist."""
@@ -372,6 +411,23 @@ class Database(object):
 
         return os.path.join(self._failure_dir,
                             '{0}-{1}'.format(spec.name, spec.full_hash()))
+
+    def clear_all_failures(self):
+        """Force remove install failure tracking files."""
+        tty.debug('Releasing prefix failure locks')
+        for pkg_id in list(self._prefix_failures.keys()):
+            lock = self._prefix_failures.pop(pkg_id, None)
+            if lock:
+                lock.release_write()
+
+        # Remove all failure markings (aka files)
+        tty.debug('Removing prefix failure tracking files')
+        for fail_mark in os.listdir(self._failure_dir):
+            try:
+                os.remove(os.path.join(self._failure_dir, fail_mark))
+            except OSError as exc:
+                tty.warn('Unable to remove failure marking file {0}: {1}'
+                         .format(fail_mark, str(exc)))
 
     def clear_failure(self, spec, force=False):
         """
@@ -555,7 +611,8 @@ class Database(object):
         This function does not do any locking or transactions.
         """
         # map from per-spec hash code to installation record.
-        installs = dict((k, v.to_dict()) for k, v in self._data.items())
+        installs = dict((k, v.to_dict(include_fields=self._record_fields))
+                        for k, v in self._data.items())
 
         # database includes installation list and version.
 
@@ -689,7 +746,8 @@ class Database(object):
 
                 self.reindex(spack.store.layout)
                 installs = dict(
-                    (k, v.to_dict()) for k, v in self._data.items()
+                    (k, v.to_dict(include_fields=self._record_fields))
+                    for k, v in self._data.items()
                 )
 
         def invalid_record(hash_key, error):
@@ -737,7 +795,7 @@ class Database(object):
         # do it *while* we're constructing specs,it causes hashes to be
         # cached prematurely.
         for hash_key, rec in data.items():
-            rec.spec._mark_concrete()
+            rec.spec._mark_root_concrete()
 
         self._data = data
 
@@ -1056,10 +1114,13 @@ class Database(object):
             # the original hash of concrete specs.
             new_spec._mark_concrete()
             new_spec._hash = key
+            new_spec._full_hash = spec._full_hash
 
         else:
-            # If it is already there, mark it as installed.
+            # If it is already there, mark it as installed and update
+            # installation time
             self._data[key].installed = True
+            self._data[key].installation_time = _now()
 
         self._data[key].explicit = explicit
 
@@ -1393,11 +1454,12 @@ class Database(object):
                     rec.spec.name) != known:
                 continue
 
-            inst_date = datetime.datetime.fromtimestamp(
-                rec.installation_time
-            )
-            if not (start_date < inst_date < end_date):
-                continue
+            if start_date or end_date:
+                inst_date = datetime.datetime.fromtimestamp(
+                    rec.installation_time
+                )
+                if not (start_date < inst_date < end_date):
+                    continue
 
             if (query_spec is any or
                 rec.spec.satisfies(query_spec, strict=True)):
@@ -1405,6 +1467,8 @@ class Database(object):
 
         return results
 
+    if _query.__doc__ is None:
+        _query.__doc__ = ""
     _query.__doc__ += _query_docstring
 
     def query_local(self, *args, **kwargs):
@@ -1412,6 +1476,8 @@ class Database(object):
         with self.read_transaction():
             return sorted(self._query(*args, **kwargs))
 
+    if query_local.__doc__ is None:
+        query_local.__doc__ = ""
     query_local.__doc__ += _query_docstring
 
     def query(self, *args, **kwargs):
@@ -1430,6 +1496,8 @@ class Database(object):
 
         return sorted(results)
 
+    if query.__doc__ is None:
+        query.__doc__ = ""
     query.__doc__ += _query_docstring
 
     def query_one(self, query_spec, known=any, installed=True):
@@ -1472,6 +1540,24 @@ class Database(object):
                       if key not in needed and rec.installed]
 
         return unused
+
+    def update_explicit(self, spec, explicit):
+        """
+        Update the spec's explicit state in the database.
+
+        Args:
+            spec (Spec): the spec whose install record is being updated
+            explicit (bool): ``True`` if the package was requested explicitly
+                by the user, ``False`` if it was pulled in as a dependency of
+                an explicit package.
+        """
+        rec = self.get_record(spec)
+        if explicit != rec.explicit:
+            with self.write_transaction():
+                message = '{s.name}@{s.version} : marking the package {0}'
+                status = 'explicit' if explicit else 'implicit'
+                tty.debug(message.format(status, s=spec))
+                rec.explicit = explicit
 
 
 class UpstreamDatabaseLockingError(SpackError):

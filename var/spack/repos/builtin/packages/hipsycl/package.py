@@ -1,4 +1,4 @@
-# Copyright 2013-2019 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2021 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -21,7 +21,7 @@ class Hipsycl(CMakePackage):
 
     provides("sycl")
 
-    version("master", branch="master", submodules=True)
+    version("stable", branch="stable", submodules=True)
     version(
         "0.8.0",
         commit="2daf8407e49dd32ebd1c266e8e944e390d28b22a",

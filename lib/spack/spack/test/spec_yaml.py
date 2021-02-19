@@ -1,4 +1,4 @@
-# Copyright 2013-2020 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2021 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,8 +11,7 @@ YAML format preserves DAG information in the spec.
 import ast
 import inspect
 import os
-
-from collections import Iterable, Mapping
+import sys
 
 import pytest
 
@@ -26,7 +25,13 @@ import spack.version
 from spack import repo
 from spack.spec import Spec, save_dependency_spec_yamls
 from spack.util.spack_yaml import syaml_dict
-from spack.test.conftest import MockPackage, MockPackageMultiRepo
+from spack.util.mock_package import MockPackageMultiRepo
+
+
+if sys.version_info >= (3, 3):
+    from collections.abc import Iterable, Mapping  # novm
+else:
+    from collections import Iterable, Mapping
 
 
 def check_yaml_round_trip(spec):
@@ -69,7 +74,7 @@ def test_concrete_spec(config, mock_packages):
 
 
 def test_yaml_multivalue(config, mock_packages):
-    spec = Spec('multivalue_variant foo="bar,baz"')
+    spec = Spec('multivalue-variant foo="bar,baz"')
     spec.concretize()
     check_yaml_round_trip(spec)
 
@@ -301,17 +306,16 @@ def test_save_dependency_spec_yamls_subset(tmpdir, config):
 
     default = ('build', 'link')
 
-    g = MockPackage('g', [], [])
-    f = MockPackage('f', [], [])
-    e = MockPackage('e', [], [])
-    d = MockPackage('d', [f, g], [default, default])
-    c = MockPackage('c', [], [])
-    b = MockPackage('b', [d, e], [default, default])
-    a = MockPackage('a', [b, c], [default, default])
+    mock_repo = MockPackageMultiRepo()
+    g = mock_repo.add_package('g', [], [])
+    f = mock_repo.add_package('f', [], [])
+    e = mock_repo.add_package('e', [], [])
+    d = mock_repo.add_package('d', [f, g], [default, default])
+    c = mock_repo.add_package('c', [], [])
+    b = mock_repo.add_package('b', [d, e], [default, default])
+    mock_repo.add_package('a', [b, c], [default, default])
 
-    mock_repo = MockPackageMultiRepo([a, b, c, d, e, f, g])
-
-    with repo.swap(mock_repo):
+    with repo.use_repositories(mock_repo):
         spec_a = Spec('a')
         spec_a.concretize()
         b_spec = spec_a['b']

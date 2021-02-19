@@ -1,4 +1,4 @@
-# Copyright 2013-2020 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2021 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -39,16 +39,20 @@
 # spack module files.
 ########################################################################
 
-spack() {
+# prevent infinite recursion when spack shells out (e.g., on cray for modules)
+if [ -n "${_sp_initializing:-}" ]; then
+    exit 0
+fi
+export _sp_initializing=true
+
+
+_spack_shell_wrapper() {
     # Store LD_LIBRARY_PATH variables from spack shell function
     # This is necessary because MacOS System Integrity Protection clears
-    # (DY?)LD_LIBRARY_PATH variables on process start.
-    if [ -n "${LD_LIBRARY_PATH-}" ]; then
-        export SPACK_LD_LIBRARY_PATH=$LD_LIBRARY_PATH
-    fi
-    if [ -n "${DYLD_LIBRARY_PATH-}" ]; then
-        export SPACK_DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH
-    fi
+    # variables that affect dyld on process start.
+    for var in LD_LIBRARY_PATH DYLD_LIBRARY_PATH DYLD_FALLBACK_LIBRARY_PATH; do
+        eval "if [ -n \"\${${var}-}\" ]; then export SPACK_$var=\${${var}}; fi"
+    done
 
     # Zsh does not do word splitting by default, this enables it for this
     # function only
@@ -240,10 +244,7 @@ _spack_determine_shell() {
 _sp_shell=$(_spack_determine_shell)
 
 
-# Export spack function so it is available in subshells (only works with bash)
-if [ "$_sp_shell" = bash ]; then
-    export -f spack
-fi
+alias spacktivate="spack env activate"
 
 #
 # Figure out where this file is.
@@ -310,6 +311,29 @@ if ! _spack_fn_exists use && ! _spack_fn_exists module; then
 	need_module="yes"
 fi;
 
+# Define the spack shell function with some informative no-ops, so when users
+# run `which spack`, they see the path to spack and where the function is from.
+eval "spack() {
+    : this is a shell function from: $_sp_share_dir/setup-env.sh
+    : the real spack script is here: $_sp_prefix/bin/spack
+    _spack_shell_wrapper \"\$@\"
+    return \$?
+}"
+
+# Export spack function so it is available in subshells (only works with bash)
+if [ "$_sp_shell" = bash ]; then
+    export -f spack
+    export -f _spack_shell_wrapper
+fi
+
+# Identify and lock the python interpreter
+for cmd in "${SPACK_PYTHON:-}" python3 python python2; do
+    if command -v > /dev/null "$cmd"; then
+        export SPACK_PYTHON="$(command -v "$cmd")"
+        break
+    fi
+done
+
 #
 # make available environment-modules
 #
@@ -355,6 +379,10 @@ _sp_multi_pathadd MODULEPATH "$_sp_tcl_roots"
 
 # Add programmable tab completion for Bash
 #
-if [ "$_sp_shell" = bash ]; then
+if test "$_sp_shell" = bash || test -n "${ZSH_VERSION:-}"; then
     source $_sp_share_dir/spack-completion.bash
 fi
+
+# done: unset sentinel variable as we're no longer initializing
+unset _sp_initializing
+export _sp_initializing
