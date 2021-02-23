@@ -40,6 +40,7 @@ class Platoengine(CMakePackage):
     variant( 'albany_tests',   default=False,   description='Configure Albany tests'          )
     variant( 'analyze_tests',  default=False,   description='Configure Analyze tests'         )
     variant( 'tpetra_tests',   default=False,   description='Configure Tpetra tests'          )
+    variant( 'amfilter',       default=False,   description='Compile the AM Filter'           )
 
     conflicts( '+expy', when='-platomain')
     conflicts( '+iso',  when='-stk')
@@ -67,6 +68,7 @@ class Platoengine(CMakePackage):
     depends_on( 'nvccwrapper',                                when='+cuda')
     depends_on( 'trilinos+cuda',                              when='+cuda')
     depends_on( 'trilinos+percept',                           when='+prune')
+    depends_on( 'arborx~mpi~cuda~serial @header_only',        when='+amfilter')
 
     depends_on( 'esp', when='+esp')
 
@@ -138,6 +140,9 @@ class Platoengine(CMakePackage):
 
         if '+tpetra_tests' in spec:
           options.extend([ '-DPLATO_TPETRA=ON' ])
+
+        if '+amfilter' in spec:
+          options.extend([ '-DAMFILTER_ENABLED=ON' ])
 
         return options
 
