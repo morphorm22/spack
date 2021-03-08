@@ -36,6 +36,7 @@ class Platoanalyze(CMakePackage):
 
     version('release', branch='release', submodules=True)
     version('develop', branch='develop', submodules=True)
+    version('tpl_update', branch='tpl_update', submodules=True) # remove before deployment
 
     variant( 'cuda',       default=True,     description='Compile with cuda'            )
     variant( 'mpmd',       default=True,     description='Compile with mpmd'            )
@@ -54,16 +55,18 @@ class Platoanalyze(CMakePackage):
     depends_on('trilinos+tpetra+belos+ifpack2+amesos2+superlu+muelu',     when='+tpetra')
     depends_on('cmake@3.0.0:', type='build')
     depends_on('python@2.6:2.999',                          when='+python')
-    depends_on('platoengine+stk+iso',                       when='+mpmd'  )
-    depends_on('platoengine+stk+iso+geometry',              when='+geometry')
-    depends_on('platoengine+stk+iso~geometry',              when='~geometry')
-    depends_on('platoengine+stk+iso@develop',               when='@develop' )
-    depends_on('platoengine+stk+iso@release',               when='@release' )
+    depends_on('platoengine~unit_testing+stk+iso',                       when='+mpmd'  )
+    depends_on('platoengine~unit_testing+stk+iso+geometry',              when='+geometry')
+    depends_on('platoengine~unit_testing+stk+iso~geometry',              when='~geometry')
+# don't commit    depends_on('platoengine+stk+iso@develop',               when='@develop' )
+    depends_on('platoengine~unit_testing+stk+iso@develop',                when='@develop' )
+# don't commit:
+    depends_on('platoengine~unit_testing+stk+iso@tpl_update',            when='@tpl_update' )
+    depends_on('platoengine~unit_testing+stk+iso@release',               when='@release' )
     depends_on('arborx~mpi~cuda~serial @header_only',       when='+meshmap')
-    depends_on('platoengine+stk+iso+esp',                   when='+mpmd+esp')
+    depends_on('platoengine~unit_testing+stk+iso+esp',                   when='+mpmd+esp')
     depends_on('amgx',                                      when='+amgx')
-#    depends_on('nvccwrapper',                               when='+cuda')
-    depends_on('omega-h @master',                           type=('build', 'link', 'run'))
+    depends_on('omega-h @develop',                           type=('build', 'link', 'run'))
     depends_on('esp',                                       when='+esp')
 
     conflicts('+geometry', when='~mpmd')

@@ -16,6 +16,7 @@ class Platoengine(CMakePackage):
     maintainers = ['rviertel', 'jrobbin']
 
     version('release', branch='release', preferred=True)
+    version('tpl_update', branch='tpl_update') # remove before deployment
     version('develop', branch='develop')
     version('0.6.0', sha256='893f9d6f05ef1d7ca563fcc585e92b2153eb6b9f203fb4cadc73a00da974ac20')
     version('0.5.0', sha256='dc394819026b173749f78ba3a66d0c32d4ec733b68a4d004a4acb70f7668eca2')
@@ -66,7 +67,7 @@ class Platoengine(CMakePackage):
     depends_on( 'python@2.6:2.999', type=('build', 'link', 'run'), when='+expy'    )
     depends_on( 'nlopt',                                      when='+expy'         )
     depends_on( 'py-numpy@1.16.5',                            when='+expy'         )
-    depends_on( 'nvccwrapper',                                when='+cuda')
+#    depends_on( 'nvccwrapper',                                when='+cuda')
     depends_on( 'trilinos+cuda',                              when='+cuda')
 
     depends_on( 'esp', when='+esp')
