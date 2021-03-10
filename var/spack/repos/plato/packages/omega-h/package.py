@@ -60,19 +60,26 @@ class OmegaH(CMakePackage):
                 yield '-D' + cmake_var + ':BOOL=FALSE'
 
     def cmake_args(self):
-        args = ['-DUSE_XSDK_DEFAULTS:BOOL=OFF']
+        args = []
         if '+shared' in self.spec:
             args.append('-DBUILD_SHARED_LIBS:BOOL=ON')
         else:
             args.append('-DBUILD_SHARED_LIBS:BOOL=OFF')
         if '+mpi' in self.spec:
-            args.append('-DOmega_h_USE_MPI:BOOL=ON')
+            # only point to the mpi compiler for now.  turning on the flag below
+            # prompts omega-h to do a 'find_package(MPI)' which adds a MPI::MPI_CXX
+            # dependency to omega-h targets. This causes problems in PA.
+            # args.append('-DOmega_h_USE_MPI:BOOL=ON')
             args.append('-DCMAKE_CXX_COMPILER:FILEPATH={0}'.format(self.spec['mpi'].mpicxx))
         else:
             args.append('-DOmega_h_USE_MPI:BOOL=OFF')
         if '+trilinos' in self.spec:
             args.append('-DOmega_h_USE_Kokkos:BOOL=ON')
             args.append('-DOmega_h_USE_SEACASExodus:BOOL=ON')
+            # if SEACASExodus is on, omega-h does a 'find_package(HDF5)' which fails
+            # because the hdf5 spack package doesn't create a *config.cmake file.  
+            # Finding hdf5 isn't necessary anyway when building with trilinos.
+            args.append('-DOmega_h_USE_HDF5:BOOL=OFF')
             args.append('-DKokkos_PREFIX:PATH={0}'.format(self.spec['trilinos'].prefix))
         if '+zlib' in self.spec:
             args.append('-DOmega_h_USE_ZLIB:BOOL=ON')
