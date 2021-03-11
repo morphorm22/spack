@@ -29,11 +29,11 @@ class Platoengine(CMakePackage):
     variant( 'platostatics',   default=True,    description='Compile PlatoStatics'            )
     variant( 'unit_testing',   default=True,    description='Add unit testing'                )
     variant( 'regression',     default=True,    description='Add regression tests'            )
+    variant( 'esp',            default=True,    description='Turn on esp'                     )
     variant( 'platoproxy',     default=False,   description='Compile PlatoProxy'              )
     variant( 'expy',           default=False,   description='Compile exodus/python API'       )
     variant( 'geometry',       default=False,   description='Turn on Plato Geometry'          )
     variant( 'iso',            default=False,   description='Turn on iso extraction'          )
-    variant( 'esp',            default=False,   description='Turn on esp'                     )
     variant( 'stk',            default=False,   description='Turn on use of stk'              )
     variant( 'prune',          default=False,   description='Turn on use of prune and refine' )
     variant( 'rol',            default=False,   description='Turn on use of rol'              )
@@ -66,7 +66,8 @@ class Platoengine(CMakePackage):
     depends_on( 'googletest',                                 when='+unit_testing' )
     depends_on( 'python@2.6:2.999', type=('build', 'link', 'run'), when='+expy'    )
     depends_on( 'nlopt',                                      when='+expy'         )
-    depends_on( 'py-numpy@1.16.5',                            when='+expy'         )
+    # py-setuptools later than v44.1.0 require python 3.x
+    depends_on( 'py-numpy@1.16.5 ^py-setuptools@44.1.0',      when='+expy'         )
 #    depends_on( 'nvccwrapper',                                when='+cuda')
     depends_on( 'trilinos+cuda',                              when='+cuda')
 

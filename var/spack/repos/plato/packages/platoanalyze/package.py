@@ -42,29 +42,40 @@ class Platoanalyze(CMakePackage):
     variant( 'mpmd',       default=True,     description='Compile with mpmd'            )
     variant( 'meshmap',    default=True,     description='Compile with MeshMap'         )
     variant( 'amgx',       default=True,     description='Compile with AMGX'            )
-    variant( 'openmp',     default=False,    description='Compile with openmp'          )
-    variant( 'python',     default=False,    description='Compile with python'          )
+    variant( 'python',     default=True,     description='Compile with python'          )
+    variant( 'esp',        default=True,     description='Compile with ESP'             )
     variant( 'geometry',   default=False,    description='Compile with MLS geometry'    )
+    variant( 'openmp',     default=False,    description='Compile with openmp'          )
     variant( 'rocket',     default=False,    description='Builds ROCKET and ROCKET_MPMD')
-    variant( 'esp',        default=False,    description='Compile with ESP'             )
     variant( 'tpetra',     default=False,    description='Compile with Tpetra'          )
+
+# tpl_update
+    variant('compute_capability', default='70', description="GPU compute capability",
+        values=('30', '35', '37', '50', '52', '60', '61', '70', '75'))
+#end
 
     depends_on('trilinos+epetra')
     depends_on('trilinos+cuda',                             when='+cuda')
     depends_on('trilinos+openmp',                           when='+openmp')
     depends_on('trilinos+tpetra+belos+ifpack2+amesos2+superlu+muelu',     when='+tpetra')
     depends_on('cmake@3.0.0:', type='build')
-    depends_on('python@2.6:2.999',                          when='+python')
+
     depends_on('platoengine~unit_testing+stk+iso',                       when='+mpmd'  )
     depends_on('platoengine~unit_testing+stk+iso+geometry',              when='+geometry')
     depends_on('platoengine~unit_testing+stk+iso~geometry',              when='~geometry')
-# don't commit    depends_on('platoengine+stk+iso@develop',               when='@develop' )
     depends_on('platoengine~unit_testing+stk+iso@develop',                when='@develop' )
-# don't commit:
-    depends_on('platoengine~unit_testing+stk+iso@tpl_update',            when='@tpl_update' )
+    depends_on('python @2.6:2.999',                          when='+python')
+
+# tpl_update
+    depends_on('platoengine~unit_testing+stk+iso+expy+esp@tpl_update',            when='@tpl_update' )
+    depends_on('amgx cuda_arch=75',                                      when='+amgx compute_capability=75')
+#end
+
+
     depends_on('platoengine~unit_testing+stk+iso@release',               when='@release' )
-    depends_on('arborx~mpi~cuda~serial @header_only',       when='+meshmap')
     depends_on('platoengine~unit_testing+stk+iso+esp',                   when='+mpmd+esp')
+
+    depends_on('arborx~mpi~cuda~serial @header_only',       when='+meshmap')
     depends_on('amgx',                                      when='+amgx')
     depends_on('omega-h @develop',                           type=('build', 'link', 'run'))
     depends_on('esp',                                       when='+esp')
