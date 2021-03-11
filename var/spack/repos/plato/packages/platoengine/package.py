@@ -44,7 +44,6 @@ class Platoengine(CMakePackage):
     conflicts( '+expy', when='-platomain')
     conflicts( '+iso',  when='-stk')
     conflicts( '+prune',  when='-stk')
-    conflicts( '@release', when='+prune')
     conflicts( '@0.1.0', when='+prune')
     conflicts( '@0.2.0', when='+prune')
     conflicts( '@0.3.0', when='+prune')
