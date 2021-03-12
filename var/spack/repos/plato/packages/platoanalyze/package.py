@@ -69,8 +69,8 @@ class Platoanalyze(CMakePackage):
 # tpl_update
     depends_on('platoengine~unit_testing+stk+iso+expy+esp@tpl_update',            when='@tpl_update' )
 
-#    depends_on('cuda @10.2.89', when='+cuda')
-    depends_on('cuda @10.0.130', when='+cuda')
+    # amgx doesn't build with cuda >= 11.x
+    depends_on('cuda @10.0:10.999', when='+cuda')
 
     # this pattern isn't elegant, but it works.  (Is there a better way to forward a variant value?)
     depends_on('trilinos+cuda+wrapper+chaco~zoltan~zoltan2~tpetra+shards~muelu~ifpack~ifpack2~belos~amesos2~amesos~suite-sparse~hypre+intrepid@master cxxstd=14 cuda_arch=75', when='@tpl_update compute_capability=75')
