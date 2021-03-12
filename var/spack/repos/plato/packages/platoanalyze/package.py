@@ -54,26 +54,48 @@ class Platoanalyze(CMakePackage):
         values=('30', '35', '37', '50', '52', '60', '61', '70', '75'))
 #end
 
-    depends_on('trilinos+epetra')
-    depends_on('trilinos+cuda',                             when='+cuda')
-    depends_on('trilinos+openmp',                           when='+openmp')
-    depends_on('trilinos+tpetra+belos+ifpack2+amesos2+superlu+muelu',     when='+tpetra')
+#    depends_on('trilinos+epetra')
+#    depends_on('trilinos+cuda',                             when='+cuda')
+#    depends_on('trilinos+openmp',                           when='+openmp')
+#    depends_on('trilinos+tpetra+belos+ifpack2+amesos2+superlu+muelu',     when='+tpetra')
     depends_on('cmake@3.0.0:', type='build')
 
-    depends_on('platoengine~unit_testing+stk+iso',                       when='+mpmd'  )
-    depends_on('platoengine~unit_testing+stk+iso+geometry',              when='+geometry')
-    depends_on('platoengine~unit_testing+stk+iso~geometry',              when='~geometry')
-    depends_on('platoengine~unit_testing+stk+iso@develop',                when='@develop' )
+#    depends_on('platoengine~unit_testing+stk+iso',                       when='+mpmd'  )
+#    depends_on('platoengine~unit_testing+stk+iso+geometry',              when='+geometry')
+#    depends_on('platoengine~unit_testing+stk+iso~geometry',              when='~geometry')
+#    depends_on('platoengine~unit_testing+stk+iso@develop',                when='@develop' )
     depends_on('python @2.6:2.999',                          when='+python')
 
 # tpl_update
     depends_on('platoengine~unit_testing+stk+iso+expy+esp@tpl_update',            when='@tpl_update' )
-    depends_on('amgx cuda_arch=75',                                      when='+amgx compute_capability=75')
+
+#    depends_on('cuda @10.2.89', when='+cuda')
+    depends_on('cuda @10.0.130', when='+cuda')
+
+    # this pattern isn't elegant, but it works.  (Is there a better way to forward a variant value?)
+    depends_on('trilinos+cuda+wrapper+chaco~zoltan~zoltan2~tpetra+shards~muelu~ifpack~ifpack2~belos~amesos2~amesos~suite-sparse~hypre+intrepid@master cxxstd=14 cuda_arch=75', when='@tpl_update compute_capability=75')
+    depends_on('trilinos+cuda+wrapper+chaco~zoltan~zoltan2~tpetra+shards~muelu~ifpack~ifpack2~belos~amesos2~amesos~suite-sparse~hypre+intrepid@master cxxstd=14 cuda_arch=70', when='@tpl_update compute_capability=70')
+    depends_on('trilinos+cuda+wrapper+chaco~zoltan~zoltan2~tpetra+shards~muelu~ifpack~ifpack2~belos~amesos2~amesos~suite-sparse~hypre+intrepid@master cxxstd=14 cuda_arch=61', when='@tpl_update compute_capability=61')
+    depends_on('trilinos+cuda+wrapper+chaco~zoltan~zoltan2~tpetra+shards~muelu~ifpack~ifpack2~belos~amesos2~amesos~suite-sparse~hypre+intrepid@master cxxstd=14 cuda_arch=60', when='@tpl_update compute_capability=60')
+    depends_on('trilinos+cuda+wrapper+chaco~zoltan~zoltan2~tpetra+shards~muelu~ifpack~ifpack2~belos~amesos2~amesos~suite-sparse~hypre+intrepid@master cxxstd=14 cuda_arch=52', when='@tpl_update compute_capability=52')
+    depends_on('trilinos+cuda+wrapper+chaco~zoltan~zoltan2~tpetra+shards~muelu~ifpack~ifpack2~belos~amesos2~amesos~suite-sparse~hypre+intrepid@master cxxstd=14 cuda_arch=37', when='@tpl_update compute_capability=37')
+    depends_on('trilinos+cuda+wrapper+chaco~zoltan~zoltan2~tpetra+shards~muelu~ifpack~ifpack2~belos~amesos2~amesos~suite-sparse~hypre+intrepid@master cxxstd=14 cuda_arch=35', when='@tpl_update compute_capability=35')
+    depends_on('trilinos+cuda+wrapper+chaco~zoltan~zoltan2~tpetra+shards~muelu~ifpack~ifpack2~belos~amesos2~amesos~suite-sparse~hypre+intrepid@master cxxstd=14 cuda_arch=30', when='@tpl_update compute_capability=30')
+
+    # this pattern isn't elegant, but it works.  (Is there a better way to forward a variant value?)
+    depends_on('amgx cuda_arch=75', when='+amgx compute_capability=75')
+    depends_on('amgx cuda_arch=70', when='+amgx compute_capability=70')
+    depends_on('amgx cuda_arch=61', when='+amgx compute_capability=61')
+    depends_on('amgx cuda_arch=60', when='+amgx compute_capability=60')
+    depends_on('amgx cuda_arch=52', when='+amgx compute_capability=52')
+    depends_on('amgx cuda_arch=37', when='+amgx compute_capability=37')
+    depends_on('amgx cuda_arch=35', when='+amgx compute_capability=35')
+    depends_on('amgx cuda_arch=30', when='+amgx compute_capability=30')
 #end
 
 
-    depends_on('platoengine~unit_testing+stk+iso@release',               when='@release' )
-    depends_on('platoengine~unit_testing+stk+iso+esp',                   when='+mpmd+esp')
+#    depends_on('platoengine~unit_testing+stk+iso@release',               when='@release' )
+#    depends_on('platoengine~unit_testing+stk+iso+esp',                   when='+mpmd+esp')
 
     depends_on('arborx~mpi~cuda~serial @header_only',       when='+meshmap')
     depends_on('amgx',                                      when='+amgx')
