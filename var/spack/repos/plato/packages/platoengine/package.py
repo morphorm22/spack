@@ -17,6 +17,7 @@ class Platoengine(CMakePackage):
 
     version('release', branch='release', preferred=True)
     version('develop', branch='develop')
+    version('AMFilter', branch='AMFilter')
     version('0.6.0', sha256='893f9d6f05ef1d7ca563fcc585e92b2153eb6b9f203fb4cadc73a00da974ac20')
     version('0.5.0', sha256='dc394819026b173749f78ba3a66d0c32d4ec733b68a4d004a4acb70f7668eca2')
     version('0.4.0', sha256='642404480ea2e9b7a2bffcfcc2d526dea2f1b136d786e088a5d91a4ff21b8ef2')
@@ -143,6 +144,8 @@ class Platoengine(CMakePackage):
 
         if '+amfilter' in spec:
           options.extend([ '-DAMFILTER_ENABLED=ON' ])
+          arborx_inc_dir = spec['arborx'].prefix+'/include'
+          options.extend([ '-DARBORX_INCLUDE_DIR={0}'.format(arborx_inc_dir) ])
 
         return options
 
