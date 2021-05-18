@@ -68,7 +68,6 @@ class Platoengine(CMakePackage):
     depends_on( 'nlopt',                                      when='+expy'         )
     # py-setuptools later than v44.1.0 require python 3.x
     depends_on( 'py-numpy@1.16.5 ^py-setuptools@44.1.0',      when='+expy'         )
-#    depends_on( 'nvccwrapper',                                when='+cuda')
     depends_on( 'trilinos+cuda',                              when='+cuda')
 
     depends_on( 'esp', when='+esp')
