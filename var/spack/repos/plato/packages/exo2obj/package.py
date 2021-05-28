@@ -36,7 +36,7 @@ class Exo2obj(CMakePackage):
 
     version('release', branch='release')
 
-    depends_on('seacas~mpi @master')
+    depends_on('seacas~mpi')
 
     def cmake_args(self):
         spec = self.spec

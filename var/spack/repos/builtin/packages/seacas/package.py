@@ -26,6 +26,14 @@ class Seacas(CMakePackage):
 
     # ###################### Versions ##########################
     version('master', branch='master')
+    version('2021-05-12', sha256='92663767f0317018d6f6e422e8c687e49f6f7eb2b92e49e837eb7dc0ca0ac33d')
+    version('2021-04-05', sha256='76f66eec1fec7aba30092c94c7609495e6b90d9dcb6f35b3ee188304d02c6e04')
+    version('2021-01-20', sha256='7814e81981d03009b6816be3eb4ed3845fd02cc69e006ee008a2cbc85d508246')
+    version('2021-01-06', sha256='b233502a7dc3e5ab69466054cf358eb033e593b8679c6721bf630b03999bd7e5')
+    version('2020-08-13', sha256='e5eaf203eb2dbfb33c61ccde26deea459d058aaea79b0847e2f4bdb0cef1ddcb')
+    version('2020-05-12', sha256='7fc6915f60568b36e052ba07a77d691c99abe42eaba6ae8a6dc74bb33490ed60')
+    version('2020-03-16', sha256='2eb404f3dcb17c3e7eacf66978372830d40ef3722788207741fcd48417807af6')
+    version('2020-01-16', sha256='5ae84f61e410a4f3f19153737e0ac0493b144f20feb1bbfe2024f76613d8bff5')
     version('2019-12-18', sha256='f82cfa276ebc5fe6054852383da16eba7a51c81e6640c73b5f01fc3109487c6f')
     version('2019-10-14', sha256='ca4cf585cdbc15c25f302140fe1f61ee1a30d72921e032b9a854492b6c61fb91')
     version('2019-08-20', sha256='a82c1910c2b37427616dc3716ca0b3c1c77410db6723aefb5bea9f47429666e5')
@@ -86,7 +94,7 @@ class Seacas(CMakePackage):
     # MPI related dependencies
     depends_on('mpi', when='+mpi')
 
-    depends_on('cmake@3.1:', type='build')
+    depends_on('cmake@3.17:', type='build')
 
     def cmake_args(self):
         spec = self.spec
