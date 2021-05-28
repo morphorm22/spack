@@ -5,10 +5,9 @@ class Esp(Package):
     """Engineering SketchPad by Bob Haimes at MIT"""
 
     homepage = "https://acdl.mit.edu/ESP/"
-    url      = "https://acdl.mit.edu/esp/PreBuilts/ESP118Lin.tgz"
+    url      = "https://acdl.mit.edu/ESP/archive/ESP117Lin.tgz"
 
-    version('118Lin', sha256='a9b4f4d2a35b2284d7befbeed8fe0e80fc01f9e907405e6a74f31d247a6ea15c')
-    version('117Lin', sha256='bd6418ee9dafabdc17c58449c379535f4f148f1f67730074297c605b5e10e1a0', url="https://acdl.mit.edu/ESP/archive/ESP117Lin.tgz")
+    version('117Lin', sha256='bd6418ee9dafabdc17c58449c379535f4f148f1f67730074297c605b5e10e1a0')
 
     depends_on( 'python@2.6:2.999', type=('run') )
 
