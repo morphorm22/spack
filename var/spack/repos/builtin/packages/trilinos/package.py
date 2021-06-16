@@ -472,6 +472,8 @@ class Trilinos(CMakePackage, CudaPackage):
             #     'OFF' if '+shared' in spec else 'ON'))
         ])
 
+        # options.extend('-DKokkos_ARCH_BDW=OFF')
+
         # MPI settings
         options.append(define_tpl_enable('MPI'))
         if '+mpi' in spec:
@@ -740,10 +742,13 @@ class Trilinos(CMakePackage, CudaPackage):
 
         options.append(self.define_from_variant('TPL_ENABLE_ADIOS2', 'adios2'))
 
-        options.append(define(
-            "Kokkos_ARCH_" +
-            Kokkos.spack_micro_arch_map[spec.target.name].upper(),
-            True))
+        # options.append(define(
+        #     "Kokkos_ARCH_" +
+        #     Kokkos.spack_micro_arch_map[spec.target.name].upper(),
+        #     True))
+
+        options.extend('-DKokkos_ARCH_BDW=OFF')
+
 
         # ################# Miscellaneous Stuff ######################
         # CUDA
