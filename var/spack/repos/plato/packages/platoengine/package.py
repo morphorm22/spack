@@ -15,7 +15,8 @@ class Platoengine(CMakePackage):
 
     maintainers = ['rviertel', 'jrobbin']
 
-    version('release', branch='release', preferred=True)
+    version('update_kokkos_func', branch='update_kokkos_func', preferred=True) # remove before deployment
+    # version('release', branch='release', preferred=True)
     version('tpl_update', branch='tpl_update') # remove before deployment
     version('develop', branch='develop')
     version('0.6.0', sha256='893f9d6f05ef1d7ca563fcc585e92b2153eb6b9f203fb4cadc73a00da974ac20')
@@ -53,7 +54,7 @@ class Platoengine(CMakePackage):
     conflicts( '@0.5.0', when='+prune')
     conflicts( '@0.6.0', when='+prune')
 
-    depends_on( 'trilinos')
+    depends_on( 'trilinos+exodus+chaco+intrepid+shards')
     depends_on( 'mpi',            type=('build','link','run'))
     depends_on( 'cmake@3.0.0:',   type='build')
     depends_on( 'trilinos+rol',                               when='+rol')
