@@ -51,7 +51,7 @@ class Platoengine(CMakePackage):
     conflicts( '@0.5.0', when='+prune')
     conflicts( '@0.6.0', when='+prune')
 
-    depends_on( 'trilinos')
+    depends_on( 'trilinos~gtest')
     depends_on( 'mpi',            type=('build','link','run'))
     depends_on( 'cmake@3.0.0:',   type='build')
     depends_on( 'trilinos+rol',                               when='+rol')
