@@ -59,9 +59,9 @@ class Platoengine(CMakePackage):
     depends_on( 'cmake@3.0.0:',   type='build')
     depends_on( 'trilinos+rol',                               when='+rol')
     depends_on( 'trilinos+zlib+pnetcdf+boost \
-                                       +stk+gtest',           when='+stk')
+                                       +stk',           when='+stk')
     depends_on( 'trilinos+percept+zoltan+zlib+pnetcdf+boost \
-                                       +stk+gtest',           when='+prune')
+                                       +stk',           when='+prune')
     depends_on( 'trilinos+zlib+pnetcdf+boost+intrepid2 \
                              +minitensor+pamgen',             when='+geometry')
     depends_on( 'googletest',                                 when='+unit_testing' )
@@ -69,8 +69,7 @@ class Platoengine(CMakePackage):
     depends_on( 'nlopt',                                      when='+expy'         )
     # py-setuptools later than v44.1.0 require python 3.x
     depends_on( 'py-numpy@1.16.5 ^py-setuptools@44.1.0',      when='+expy'         )
-#    depends_on( 'nvccwrapper',                                when='+cuda')
-    depends_on( 'trilinos+cuda',                              when='+cuda')
+    depends_on( 'trilinos+cuda+wrapper',                              when='+cuda')
 
     depends_on( 'esp', when='+esp')
 
@@ -104,6 +103,7 @@ class Platoengine(CMakePackage):
         if '+unit_testing' in spec:
           options.extend([ '-DUNIT_TESTING=ON' ])
           gtest_dir = spec['googletest'].prefix
+
           options.extend([ '-DGTEST_HOME:FILEPATH={0}'.format(gtest_dir) ])
 
         if '+iso' in spec:
