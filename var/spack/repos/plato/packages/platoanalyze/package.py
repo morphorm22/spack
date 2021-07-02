@@ -49,14 +49,15 @@ class Platoanalyze(CMakePackage):
     variant( 'rocket',     default=False,    description='Builds ROCKET and ROCKET_MPMD')
     variant( 'tpetra',     default=False,    description='Compile with Tpetra'          )
 
-    depends_on('platoengine',                                             when='+mpmd')
+    depends_on('platoengine+analyze_tests',                                       when='+mpmd')
+    depends_on('trilinos')
+    depends_on('trilinos+cuda+wrapper', when='+cuda')
     depends_on('trilinos+tpetra+belos+ifpack2+amesos2+superlu+muelu+umfpack',     when='+tpetra')
     depends_on('cmake@3.0.0:', type='build')
     depends_on('python @2.6:2.999',                          when='+python')
 
     # amgx doesn't build with cuda >= 11.x
     depends_on('cuda @10.0:10.999', when='+cuda')
-    depends_on('trilinos+cuda+wrapper', when='+cuda')
 
     depends_on('arborx~mpi~cuda~serial @header_only',       when='+meshmap')
     depends_on('amgx',                                      when='+amgx')
@@ -84,8 +85,7 @@ class Platoanalyze(CMakePackage):
 
           omega_h_dir = spec['omega-h'].prefix
           options.extend([ '-DOMEGA_H_PREFIX:PATH={0}'.format(omega_h_dir) ])
-
-        if '~mpmd' in spec:
+        else:
           options.extend([ '-DPLATOANALYZE_ENABLE_MPMD=OFF' ])
 
         if '+python' in spec:
