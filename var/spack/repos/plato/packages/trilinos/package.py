@@ -36,6 +36,7 @@ class Trilinos(CMakePackage, CudaPackage):
     version('xsdk-0.2.0', tag='xsdk-0.2.0')
     version('develop', branch='develop')
     version('master', branch='master')
+    version('rol-update', commit='b9691cf5798ed477643c0917fb74d0bada0f820c', preferred=True)
     version('13.0.1', commit='4796b92fb0644ba8c531dd9953e7a4878b05c62d')  # tag trilinos-release-13-0-1
     version('13.0.0', commit='9fec35276d846a667bc668ff4cbdfd8be0dfea08')  # tag trilinos-release-13-0-0
     version('12.18.1', commit='55a75997332636a28afc9db1aee4ae46fe8d93e7')  # tag trilinos-release-12-8-1
@@ -167,6 +168,8 @@ class Trilinos(CMakePackage, CudaPackage):
             description='Compile with Isorropia')
     variant('kokkos',       default=True,
             description='Compile with Kokkos')
+    variant('kokkoskernels',       default=True,
+            description='Compile with KokkosKernels')
     variant('ml',           default=True,
             description='Compile with ML')
     variant('minitensor',   default=False,
@@ -175,6 +178,8 @@ class Trilinos(CMakePackage, CudaPackage):
             description='Compile with Muelu')
     variant('nox',          default=False,
             description='Compile with NOX')
+    variant('pamgen',         default=False,
+            description='Compile with Pamgen')
     variant('percept',      default=False,
             description='Compile with percept')
     variant('piro',         default=False,
@@ -272,7 +277,9 @@ class Trilinos(CMakePackage, CudaPackage):
     conflicts('+isorropia', when='~epetraext')
     conflicts('+isorropia', when='~teuchos')
     conflicts('+isorropia', when='~zoltan')
+    conflicts('+kokkoskernels', when='~kokkos')
     conflicts('+muelu', when='~teuchos')
+    conflicts('+muelu', when='+kokkos~tpetra')
     conflicts('+nox', when='~teuchos')
     conflicts('+percept', when='~boost')
     conflicts('+percept', when='~pnetcdf')
@@ -296,6 +303,7 @@ class Trilinos(CMakePackage, CudaPackage):
     conflicts('+tempus', when='~teuchos')
     conflicts('+tpetra', when='~kokkos')
     conflicts('+tpetra', when='~teuchos')
+    conflicts('+tpetra', when='@rol_update')
     conflicts('+zoltan2', when='~teuchos')
     conflicts('+zoltan2', when='~tpetra')
     conflicts('+zoltan2', when='~zoltan')
@@ -343,6 +351,8 @@ class Trilinos(CMakePackage, CudaPackage):
     conflicts('cxxstd=14', when='+wrapper ^cuda@6.5.14:8.0.61')
     conflicts('cxxstd=17', when='+wrapper ^cuda@6.5.14:10.2.89')
 
+    conflicts('pamgen', when='%xl')
+
     # All compilers except for pgi are in conflict:
     for __compiler in spack.compilers.supported_compilers():
         if __compiler != 'clang':
@@ -366,9 +376,9 @@ class Trilinos(CMakePackage, CudaPackage):
     # MPI related dependencies
     depends_on('mpi', when='+mpi')
     depends_on('hdf5+mpi', when="+hdf5+mpi")
+    depends_on('netcdf-c', when='+netcdf')
     depends_on('netcdf-c+mpi', when="+netcdf~pnetcdf+mpi")
-    depends_on('netcdf-c+mpi+parallel-netcdf', when="+netcdf+pnetcdf@master,12.12.1:")
-    depends_on('parallel-netcdf', when="+netcdf+pnetcdf@master,12.12.1:")
+    depends_on('netcdf-c+mpi+parallel-netcdf', when="+netcdf+pnetcdf")
     depends_on('parmetis', when='+metis+mpi')
     depends_on('cgns', when='+cgns')
     depends_on('adios2', when='+adios2')
@@ -509,14 +519,16 @@ class Trilinos(CMakePackage, CudaPackage):
             define_trilinos_enable('Intrepid2'),
             define_trilinos_enable('Isorropia'),
             define_trilinos_enable('Kokkos'),
+            define_trilinos_enable('KokkosKernels'),
             define_trilinos_enable('MiniTensor'),
             define_trilinos_enable('Mesquite'),
             define_trilinos_enable('ML'),
             define_trilinos_enable('MueLu'),
             define_trilinos_enable('NOX'),
-            define_trilinos_enable('Piro'),
+            define_trilinos_enable('Pamgen'),
             define_trilinos_enable('Percept'),
             define_trilinos_enable('Phalanx'),
+            define_trilinos_enable('Piro'),
             define_trilinos_enable('PyTrilinos', 'python'),
             define_trilinos_enable('ROL'),
             define_trilinos_enable('Rythmos'),
@@ -603,7 +615,7 @@ class Trilinos(CMakePackage, CudaPackage):
         if '+hwloc' in spec:
             options.append(define_tpl_enable('hwloc'))
 
-        options.append(define_tpl_enable('Netcdf'))
+        options.append(define_tpl_enable('NetCDF'))
         if '+netcdf' in spec:
             options.append(define('NetCDF_ROOT', spec['netcdf-c'].prefix))
 
@@ -748,10 +760,9 @@ class Trilinos(CMakePackage, CudaPackage):
 
         options.append(self.define_from_variant('TPL_ENABLE_ADIOS2', 'adios2'))
 
-        options.append(define(
-            "Kokkos_ARCH_" +
-            Kokkos.spack_micro_arch_map[spec.target.name].upper(),
-            True))
+        options.extend([
+                define('KOKKOS_ARCH_BDW', False),
+                define('KOKKOS_ARCH_HSW', False)])
 
         # ################# Miscellaneous Stuff ######################
         # CUDA

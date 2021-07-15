@@ -17,7 +17,6 @@ class Platoengine(CMakePackage):
 
     version('update_kokkos_func', branch='update_kokkos_func', preferred=True) # remove before deployment
     # version('release', branch='release', preferred=True)
-    version('tpl_update', branch='tpl_update') # remove before deployment
     version('develop', branch='develop')
     version('0.6.0', sha256='893f9d6f05ef1d7ca563fcc585e92b2153eb6b9f203fb4cadc73a00da974ac20')
     version('0.5.0', sha256='dc394819026b173749f78ba3a66d0c32d4ec733b68a4d004a4acb70f7668eca2')
@@ -54,13 +53,13 @@ class Platoengine(CMakePackage):
     conflicts( '@0.5.0', when='+prune')
     conflicts( '@0.6.0', when='+prune')
 
-    depends_on( 'trilinos+exodus+chaco+intrepid+shards')
+    depends_on( 'trilinos+exodus+chaco+intrepid+shards cxxstd=11 gotype=int')
     depends_on( 'mpi',            type=('build','link','run'))
     depends_on( 'cmake@3.0.0:',   type='build')
-    depends_on( 'trilinos+rol',                               when='+rol')
+    depends_on( 'trilinos@rol_update+rol',                               when='+rol')
     depends_on( 'trilinos+zlib+pnetcdf+boost \
                                        +stk',           when='+stk')
-    depends_on( 'trilinos+percept+zoltan+zlib+pnetcdf+boost \
+    depends_on( 'trilinos@rol_update+percept+zoltan+zlib+pnetcdf+boost \
                                        +stk',           when='+prune')
     depends_on( 'trilinos+zlib+pnetcdf+boost+intrepid2 \
                              +minitensor+pamgen',             when='+geometry')
@@ -103,6 +102,8 @@ class Platoengine(CMakePackage):
         if '+unit_testing' in spec:
           options.extend([ '-DUNIT_TESTING=ON' ])
           gtest_dir = spec['googletest'].prefix
+        else:
+          options.extend([ '-DUNIT_TESTING=OFF' ])
 
           options.extend([ '-DGTEST_HOME:FILEPATH={0}'.format(gtest_dir) ])
 

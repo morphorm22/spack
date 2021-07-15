@@ -50,9 +50,13 @@ class Platoanalyze(CMakePackage):
     variant( 'tpetra',     default=False,    description='Compile with Tpetra'          )
 
     depends_on('platoengine+analyze_tests',                                       when='+mpmd')
-    depends_on('trilinos')
+    depends_on('trilinos+kokkos+kokkoskernels cxxstd=11 gotype=int')
     depends_on('trilinos+cuda+wrapper', when='+cuda')
-    depends_on('trilinos+tpetra+belos+ifpack2+amesos2+superlu+muelu+umfpack',     when='+tpetra')
+    depends_on('trilinos+openmp', when='+openmp')
+    depends_on('trilinos+tpetra+belos+ifpack2+amesos2+superlu+muelu+zoltan2',     when='+tpetra')
+    depends_on('trilinos~tpetra~amesos2~ifpack2~belos~muelu~zoltan2',                            when='~tpetra')
+    depends_on('trilinos+pamgen',                            when='+geometry')
+    depends_on('platoengine+geometry',                            when='+geometry')
     depends_on('cmake@3.0.0:', type='build')
     depends_on('python @2.6:2.999',                          when='+python')
 
@@ -67,6 +71,7 @@ class Platoanalyze(CMakePackage):
     conflicts('+geometry', when='~mpmd')
     conflicts('+meshmap',  when='~mpmd')
     conflicts('+amgx',     when='~cuda')
+    conflicts('+openmp',     when='+cuda')
 
     def cmake_args(self):
         spec = self.spec
