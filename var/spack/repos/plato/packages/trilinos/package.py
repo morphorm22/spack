@@ -36,8 +36,8 @@ class Trilinos(CMakePackage, CudaPackage):
     version('xsdk-0.2.0', tag='xsdk-0.2.0')
     version('develop', branch='develop')
     version('master', branch='master')
-    version('rol-update', commit='b9691cf5798ed477643c0917fb74d0bada0f820c', preferred=True)
-    version('13.0.1', commit='4796b92fb0644ba8c531dd9953e7a4878b05c62d')  # tag trilinos-release-13-0-1
+    version('rol-update', commit='b9691cf5798ed477643c0917fb74d0bada0f820c')
+    version('13.0.1', commit='4796b92fb0644ba8c531dd9953e7a4878b05c62d', preferred=True)  # tag trilinos-release-13-0-1
     version('13.0.0', commit='9fec35276d846a667bc668ff4cbdfd8be0dfea08')  # tag trilinos-release-13-0-0
     version('12.18.1', commit='55a75997332636a28afc9db1aee4ae46fe8d93e7')  # tag trilinos-release-12-8-1
     version('12.14.1', sha256='52a4406cca2241f5eea8e166c2950471dd9478ad6741cbb2a7fc8225814616f0')
@@ -80,6 +80,8 @@ class Trilinos(CMakePackage, CudaPackage):
             description="Use nvcc-wrapper for CUDA build")
     variant('cuda_rdc', default=False,
             description='turn on RDC for CUDA build')
+    variant('cuda', default=False,
+            description='build with CUDA')
     variant('cxxstd', default='11', values=['11', '14', '17'], multi=False)
     variant('hwloc', default=False,
             description='Enable hwloc')
@@ -137,18 +139,18 @@ class Trilinos(CMakePackage, CudaPackage):
             description='Compile with all optional packages')
     variant('amesos',       default=True,
             description='Compile with Amesos')
-    variant('amesos2',      default=True,
+    variant('amesos2',      default=False,
             description='Compile with Amesos2')
     variant('anasazi',      default=True,
             description='Compile with Anasazi')
     variant('aztec',        default=True,
             description='Compile with Aztec')
-    variant('belos',        default=True,
+    variant('belos',        default=False,
             description='Compile with Belos')
     # chaco is disabled by default. As of 12.14.1 libchaco.so
     # has the global symbol divide (and maybe others) that can
     # lead to symbol clash.
-    variant('chaco',       default=False,
+    variant('chaco',       default=True,
             description='Compile with Chaco from SEACAS')
     variant('epetra',       default=True,
             description='Compile with Epetra')
@@ -158,9 +160,9 @@ class Trilinos(CMakePackage, CudaPackage):
             description='Compile with Exodus from SEACAS')
     variant('ifpack',       default=True,
             description='Compile with Ifpack')
-    variant('ifpack2',      default=True,
+    variant('ifpack2',      default=False,
             description='Compile with Ifpack2')
-    variant('intrepid',     default=False,
+    variant('intrepid',     default=True,
             description='Enable Intrepid')
     variant('intrepid2',    default=False,
             description='Enable Intrepid2')
@@ -174,7 +176,7 @@ class Trilinos(CMakePackage, CudaPackage):
             description='Compile with ML')
     variant('minitensor',   default=False,
             description='Compile with MiniTensor')
-    variant('muelu',        default=True,
+    variant('muelu',        default=False,
             description='Compile with Muelu')
     variant('nox',          default=False,
             description='Compile with NOX')
@@ -194,7 +196,7 @@ class Trilinos(CMakePackage, CudaPackage):
             description='Compile with Sacado')
     variant('stk',          default=False,
             description='Compile with STK')
-    variant('shards',       default=False,
+    variant('shards',       default=True,
             description='Compile with Shards')
     variant('shylu',        default=False,
             description='Compile with ShyLU')
@@ -206,11 +208,11 @@ class Trilinos(CMakePackage, CudaPackage):
             description='Compile with Tempus')
     variant('teuchos',      default=True,
             description='Compile with Teuchos')
-    variant('tpetra',       default=True,
+    variant('tpetra',       default=False,
             description='Compile with Tpetra')
-    variant('zoltan',       default=True,
+    variant('zoltan',       default=False,
             description='Compile with Zoltan')
-    variant('zoltan2',      default=True,
+    variant('zoltan2',      default=False,
             description='Compile with Zoltan2')
 
     # External package options

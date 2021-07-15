@@ -34,18 +34,17 @@ class Platoanalyze(CMakePackage):
 
     maintainers = ['rviertel', 'jrobbin']
 
-    version('release', branch='release', submodules=True)
+    version('release', branch='release', submodules=True, preferred=True)
     version('develop', branch='develop', submodules=True)
-    version('tpl_update', branch='tpl_update', submodules=True, preferred=True) # remove before deployment
 
-    variant( 'cuda',       default=True,     description='Compile with cuda'            )
-    variant( 'mpmd',       default=True,     description='Compile with mpmd'            )
-    variant( 'meshmap',    default=True,     description='Compile with MeshMap'         )
     variant( 'amgx',       default=True,     description='Compile with AMGX'            )
-    variant( 'python',     default=True,     description='Compile with python'          )
-    variant( 'esp',        default=True,     description='Compile with ESP'             )
+    variant( 'cuda',       default=True,     description='Compile with cuda'            )
+    variant( 'meshmap',    default=True,     description='Compile with MeshMap'         )
+    variant( 'mpmd',       default=True,     description='Compile with mpmd'            )
+    variant( 'esp',        default=False,     description='Compile with ESP'             )
     variant( 'geometry',   default=False,    description='Compile with MLS geometry'    )
     variant( 'openmp',     default=False,    description='Compile with openmp'          )
+    variant( 'python',     default=False,     description='Compile with python'          )
     variant( 'rocket',     default=False,    description='Builds ROCKET and ROCKET_MPMD')
     variant( 'tpetra',     default=False,    description='Compile with Tpetra'          )
 
@@ -61,12 +60,13 @@ class Platoanalyze(CMakePackage):
     depends_on('python @2.6:2.999',                          when='+python')
 
     # amgx doesn't build with cuda >= 11.x
-    depends_on('cuda @10.0:10.999', when='+cuda')
+    # depends_on('cuda @10.0:10.999', when='+cuda')
 
     depends_on('arborx~mpi~cuda~serial @header_only',       when='+meshmap')
     depends_on('amgx',                                      when='+amgx')
     depends_on('omega-h @develop',                           type=('build', 'link', 'run'))
     depends_on('esp',                                       when='+esp')
+    depends_on('platoengine+esp',                                       when='+esp')
 
     conflicts('+geometry', when='~mpmd')
     conflicts('+meshmap',  when='~mpmd')

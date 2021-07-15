@@ -15,8 +15,7 @@ class Platoengine(CMakePackage):
 
     maintainers = ['rviertel', 'jrobbin']
 
-    version('update_kokkos_func', branch='update_kokkos_func', preferred=True) # remove before deployment
-    # version('release', branch='release', preferred=True)
+    version('release', branch='release', preferred=True)
     version('develop', branch='develop')
     version('0.6.0', sha256='893f9d6f05ef1d7ca563fcc585e92b2153eb6b9f203fb4cadc73a00da974ac20')
     version('0.5.0', sha256='dc394819026b173749f78ba3a66d0c32d4ec733b68a4d004a4acb70f7668eca2')
@@ -27,19 +26,19 @@ class Platoengine(CMakePackage):
 
     variant( 'platomain',      default=True,    description='Compile PlatoMain'               )
     variant( 'platostatics',   default=True,    description='Compile PlatoStatics'            )
-    variant( 'unit_testing',   default=True,    description='Add unit testing'                )
     variant( 'regression',     default=True,    description='Add regression tests'            )
-    variant( 'esp',            default=True,    description='Turn on esp'                     )
-    variant( 'platoproxy',     default=False,   description='Compile PlatoProxy'              )
+    variant( 'unit_testing',   default=True,    description='Add unit testing'                )
+    variant( 'albany_tests',   default=False,   description='Configure Albany tests'          )
+    variant( 'analyze_tests',  default=False,   description='Configure Analyze tests'         )
+    variant( 'cuda',           default=False,   description='Compile with cuda'               )
+    variant( 'esp',            default=False,    description='Turn on esp'                     )
     variant( 'expy',           default=False,   description='Compile exodus/python API'       )
     variant( 'geometry',       default=False,   description='Turn on Plato Geometry'          )
     variant( 'iso',            default=False,   description='Turn on iso extraction'          )
-    variant( 'stk',            default=False,   description='Turn on use of stk'              )
+    variant( 'platoproxy',     default=False,   description='Compile PlatoProxy'              )
     variant( 'prune',          default=False,   description='Turn on use of prune and refine' )
     variant( 'rol',            default=False,   description='Turn on use of rol'              )
-    variant( 'cuda',           default=False,   description='Compile with cuda'               )
-    variant( 'albany_tests',   default=False,   description='Configure Albany tests'          )
-    variant( 'analyze_tests',  default=False,   description='Configure Analyze tests'         )
+    variant( 'stk',            default=False,   description='Turn on use of stk'              )
     variant( 'tpetra_tests',   default=False,   description='Configure Tpetra tests'          )
 
     conflicts( '+expy', when='-platomain')
