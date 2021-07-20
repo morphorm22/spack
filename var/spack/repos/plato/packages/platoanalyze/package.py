@@ -34,19 +34,21 @@ class Platoanalyze(CMakePackage):
 
     maintainers = ['rviertel', 'jrobbin']
 
-    version('release', branch='release', submodules=True)
-    version('develop', branch='develop', submodules=True)
+    version('release',   branch='release',   submodules=True)
+    version('develop',   branch='develop',   submodules=True)
 
-    variant( 'cuda',       default=True,     description='Compile with cuda'            )
-    variant( 'mpmd',       default=True,     description='Compile with mpmd'            )
-    variant( 'meshmap',    default=True,     description='Compile with MeshMap'         )
-    variant( 'amgx',       default=True,     description='Compile with AMGX'            )
-    variant( 'openmp',     default=False,    description='Compile with openmp'          )
-    variant( 'python',     default=False,    description='Compile with python'          )
-    variant( 'geometry',   default=False,    description='Compile with MLS geometry'    )
-    variant( 'rocket',     default=False,    description='Builds ROCKET and ROCKET_MPMD')
-    variant( 'esp',        default=False,    description='Compile with ESP'             )
-    variant( 'tpetra',     default=False,    description='Compile with Tpetra'          )
+    variant( 'cuda',       default=True,     description='Compile with cuda'             )
+    variant( 'mpmd',       default=True,     description='Compile with mpmd'             )
+    variant( 'meshmap',    default=True,     description='Compile with MeshMap'          )
+    variant( 'amgx',       default=True,     description='Compile with AMGX'             )
+    variant( 'physics',    default=True,     description='Compile with all Physics'      )
+    variant( 'helmholtz',  default=True,     description='Compile with Helmholtz filter' )
+    variant( 'openmp',     default=False,    description='Compile with openmp'           )
+    variant( 'python',     default=False,    description='Compile with python'           )
+    variant( 'geometry',   default=False,    description='Compile with MLS geometry'     )
+    variant( 'rocket',     default=False,    description='Builds ROCKET and ROCKET_MPMD' )
+    variant( 'esp',        default=False,    description='Compile with ESP'              )
+    variant( 'tpetra',     default=False,    description='Compile with Tpetra'           )
 
     depends_on('trilinos+epetra')
     depends_on('trilinos+cuda',                             when='+cuda')
@@ -120,6 +122,18 @@ class Platoanalyze(CMakePackage):
         if '+rocket' in spec:
           options.extend([ '-DPLATOANALYZE_ENABLE_ROCKET=ON' ])
 
+        if '~physics' in spec:
+          options.extend([ '-DELLIPTIC=OFF' ])
+          options.extend([ '-DPARABOLIC=OFF' ])
+          options.extend([ '-DHYPERBOLIC=OFF' ])
+          options.extend([ '-DSTABILIZED=OFF' ])
+          options.extend([ '-DPLASTICITY=OFF' ])
+
+        if '+helmholtz' in spec:
+          options.extend([ '-DHELMHOLTZ=ON' ])
+
+        if '~helmholtz' in spec:
+          options.extend([ '-DHELMHOLTZ=OFF' ])
 
         return options
 
