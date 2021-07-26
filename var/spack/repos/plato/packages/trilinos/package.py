@@ -772,8 +772,13 @@ class Trilinos(CMakePackage, CudaPackage):
         if '+cuda' in spec:
             options.extend([
                 define('Kokkos_ENABLE_CUDA', True),
-                define('Kokkos_ENABLE_CUDA_UVM', True),
                 define('Kokkos_ENABLE_CUDA_LAMBDA', True)])
+            if '+tpetra' in spec:
+                options.extend([
+                    define('Kokkos_ENABLE_CUDA_UVM', True)])
+            else:
+                options.extend([
+                    define('Kokkos_ENABLE_CUDA_UVM', False)])
             if '+cuda_rdc' in spec:
                 options.append(define(
                     'Kokkos_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE',
@@ -785,6 +790,7 @@ class Trilinos(CMakePackage, CudaPackage):
                     True))
             if '+wrapper' in spec:
                 cxx_flags.extend(['--expt-extended-lambda'])
+        
 
         # Set the C++ standard to use
         options.append(self.define_from_variant(
