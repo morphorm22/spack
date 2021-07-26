@@ -58,9 +58,7 @@ class Platoanalyze(CMakePackage):
     depends_on('platoengine+geometry',                            when='+geometry')
     depends_on('cmake@3.0.0:', type='build')
     depends_on('python @2.6:2.999',                          when='+python')
-
-    # amgx doesn't build with cuda >= 11.x
-    # depends_on('cuda @10.0:10.999', when='+cuda')
+    depends_on('netlib-lapack')
 
     depends_on('arborx~mpi~cuda~serial @header_only',       when='+meshmap')
     depends_on('amgx',                                      when='+amgx')
