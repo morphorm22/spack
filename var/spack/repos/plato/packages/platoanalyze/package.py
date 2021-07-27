@@ -43,6 +43,7 @@ class Platoanalyze(CMakePackage):
     variant( 'amgx',       default=True,     description='Compile with AMGX'             )
     variant( 'physics',    default=True,     description='Compile with all Physics'      )
     variant( 'helmholtz',  default=True,     description='Compile with Helmholtz filter' )
+    variant( 'unittests',  default=True,     description='Compile with unit tests' )
     variant( 'openmp',     default=False,    description='Compile with openmp'           )
     variant( 'python',     default=False,    description='Compile with python'           )
     variant( 'geometry',   default=False,    description='Compile with MLS geometry'     )
@@ -69,9 +70,10 @@ class Platoanalyze(CMakePackage):
     depends_on('omega-h+trilinos+exodus~cuda @9.26.5',      when='~cuda', type=('build', 'link', 'run'))
     depends_on('esp',                                       when='+esp')
 
-    conflicts('+geometry', when='~mpmd')
-    conflicts('+meshmap',  when='~mpmd')
-    conflicts('+amgx',     when='~cuda')
+    conflicts('+geometry',  when='~mpmd')
+    conflicts('+meshmap',   when='~mpmd')
+    conflicts('+amgx',      when='~cuda')
+    conflicts('+unittests', when='~physics')
 
     def cmake_args(self):
         spec = self.spec
@@ -134,6 +136,9 @@ class Platoanalyze(CMakePackage):
 
         if '~helmholtz' in spec:
           options.extend([ '-DHELMHOLTZ=OFF' ])
+
+        if '~unittests' in spec:
+          options.extend([ '-DPLATOANALYZE_UNIT_TEST=OFF' ])
 
         return options
 
