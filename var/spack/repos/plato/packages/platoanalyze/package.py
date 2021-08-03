@@ -49,7 +49,7 @@ class Platoanalyze(CMakePackage):
     variant( 'tpetra',     default=False,    description='Compile with Tpetra'          )
 
     depends_on('platoengine+analyze_tests',                                       when='+mpmd')
-    depends_on('trilinos+kokkos+kokkoskernels cxxstd=11 gotype=int')
+    depends_on('trilinos+kokkos+kokkoskernels gotype=int')
     depends_on('trilinos+cuda+wrapper', when='+cuda')
     depends_on('trilinos+openmp', when='+openmp')
     depends_on('trilinos+tpetra+belos+ifpack2+amesos2+superlu+muelu+zoltan2',     when='+tpetra')
