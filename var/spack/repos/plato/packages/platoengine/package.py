@@ -52,15 +52,15 @@ class Platoengine(CMakePackage):
     conflicts( '@0.5.0', when='+prune')
     conflicts( '@0.6.0', when='+prune')
 
-    depends_on( 'trilinos')
     depends_on( 'ipopt@3.12.8', when='+ipopt')
+    depends_on( 'trilinos~gtest')
     depends_on( 'mpi',            type=('build','link','run'))
     depends_on( 'cmake@3.0.0:',   type='build')
     depends_on( 'trilinos+rol',                               when='+rol')
     depends_on( 'trilinos+zlib+pnetcdf+boost \
-                                       +stk+gtest',           when='+stk')
+                                       +stk~gtest',           when='+stk')
     depends_on( 'trilinos+percept+zoltan+zlib+pnetcdf+boost \
-                                       +stk+gtest',           when='+prune')
+                                       +stk~gtest',           when='+prune')
     depends_on( 'trilinos+zlib+pnetcdf+boost+intrepid2 \
                              +minitensor+pamgen',             when='+geometry')
     depends_on( 'googletest',                                 when='+unit_testing' )
