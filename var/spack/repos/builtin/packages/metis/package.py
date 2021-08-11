@@ -23,7 +23,7 @@ class Metis(Package):
     #
 
     homepage = "https://github.com/scivision/METIS/"
-    url      = "https://github.com/scivision/METIS/raw/master/metis-5.1.0.tar.gz"
+    url      = "http://glaros.dtc.umn.edu/gkhome/fetch/sw/metis/metis-5.1.0.tar.gz"
 
     version('5.1.0', sha256='76faebe03f6c963127dbb73c13eab58c9a3faeae48779f049066a21c087c5db2')
 

@@ -28,6 +28,7 @@ class Platoengine(CMakePackage):
     variant( 'platostatics',   default=True,    description='Compile PlatoStatics'            )
     variant( 'unit_testing',   default=True,    description='Add unit testing'                )
     variant( 'regression',     default=True,    description='Add regression tests'            )
+    variant( 'ipopt',          default=False,   description='Compile with IPOPT for MMA'      )
     variant( 'platoproxy',     default=False,   description='Compile PlatoProxy'              )
     variant( 'expy',           default=False,   description='Compile exodus/python API'       )
     variant( 'geometry',       default=False,   description='Turn on Plato Geometry'          )
@@ -51,6 +52,7 @@ class Platoengine(CMakePackage):
     conflicts( '@0.5.0', when='+prune')
     conflicts( '@0.6.0', when='+prune')
 
+    depends_on( 'ipopt@3.12.8', when='+ipopt')
     depends_on( 'trilinos~gtest')
     depends_on( 'mpi',            type=('build','link','run'))
     depends_on( 'cmake@3.0.0:',   type='build')
@@ -82,8 +84,10 @@ class Platoengine(CMakePackage):
         if '+platomain' in spec:
           options.extend([ '-DPLATOMAIN=ON' ])
 
-        if '+platoproxy' in spec:
+        if '+ipopt' in spec:
+          options.extend([ '-DIPOPT_ENABLED=ON' ])
 
+        if '+platoproxy' in spec:
           options.extend([ '-DPLATOPROXY=ON' ])
 
         if '+platostatics' in spec:
