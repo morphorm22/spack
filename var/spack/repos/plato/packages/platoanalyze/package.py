@@ -35,7 +35,8 @@ class Platoanalyze(CMakePackage):
     maintainers = ['rviertel', 'jrobbin']
 
     version('release', branch='release', submodules=True)
-    version('develop', branch='develop', submodules=True, preferred=True)
+    # version('develop', branch='develop', submodules=True, preferred=True)
+    version('tpl_update', branch='tpl_update', submodules=True, preferred=True)
 
     variant( 'amgx',       default=True,     description='Compile with AMGX'            )
     variant( 'cuda',       default=True,     description='Compile with cuda'            )
@@ -49,20 +50,20 @@ class Platoanalyze(CMakePackage):
     variant( 'tpetra',     default=False,    description='Compile with Tpetra'          )
 
     depends_on('platoengine+analyze_tests',                                       when='+mpmd')
-    depends_on('trilinos+kokkos+kokkoskernels gotype=int')
+    depends_on('trilinos@13.0.1:+kokkos+kokkoskernels gotype=int')
     depends_on('trilinos+cuda+wrapper', when='+cuda')
     depends_on('trilinos+openmp', when='+openmp')
     depends_on('trilinos+tpetra+belos+ifpack2+amesos2+superlu+muelu+zoltan2',     when='+tpetra')
-    depends_on('trilinos~tpetra~amesos2~ifpack2~belos~muelu~zoltan2',                            when='~tpetra')
-    depends_on('trilinos+pamgen',                            when='+geometry')
-    depends_on('platoengine+geometry',                            when='+geometry')
+    depends_on('trilinos~tpetra~amesos2~ifpack2~belos~muelu~zoltan2',             when='~tpetra')
+    depends_on('trilinos+pamgen',                                                 when='+geometry')
+    depends_on('platoengine+geometry',                                            when='+geometry')
     depends_on('cmake@3.0.0:', type='build')
     depends_on('python @2.6:2.999',                          when='+python')
     depends_on('netlib-lapack')
 
     depends_on('arborx~mpi~cuda~serial @header_only',       when='+meshmap')
     depends_on('amgx',                                      when='+amgx')
-    depends_on('omega-h @develop',                           type=('build', 'link', 'run'))
+    depends_on('omega-h@9.34.1:',                           type=('build', 'link', 'run'))
     depends_on('esp',                                       when='+esp')
     depends_on('platoengine+esp',                                       when='+esp')
 
@@ -118,7 +119,6 @@ class Platoanalyze(CMakePackage):
 
         if '+rocket' in spec:
           options.extend([ '-DPLATOANALYZE_ENABLE_ROCKET=ON' ])
-
 
         return options
 
