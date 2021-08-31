@@ -16,8 +16,7 @@ class Platoengine(CMakePackage):
     maintainers = ['rviertel', 'jrobbin']
 
     version('release', branch='release')
-    # version('develop', branch='develop', preferred=True)
-    version('update_kokkos_func', branch='update_kokkos_func', preferred=True)
+    version('develop', branch='develop', preferred=True)
     version('0.6.0', sha256='893f9d6f05ef1d7ca563fcc585e92b2153eb6b9f203fb4cadc73a00da974ac20')
     version('0.5.0', sha256='dc394819026b173749f78ba3a66d0c32d4ec733b68a4d004a4acb70f7668eca2')
     version('0.4.0', sha256='642404480ea2e9b7a2bffcfcc2d526dea2f1b136d786e088a5d91a4ff21b8ef2')
