@@ -36,7 +36,7 @@ class Trilinos(CMakePackage, CudaPackage):
     version('xsdk-0.2.0', tag='xsdk-0.2.0')
     version('develop', branch='develop')
     version('master', branch='master')
-    version('rol-update', commit='b9691cf5798ed477643c0917fb74d0bada0f820c')
+    version('rol_update', commit='b9691cf5798ed477643c0917fb74d0bada0f820c')
     version('13.0.1', commit='4796b92fb0644ba8c531dd9953e7a4878b05c62d', preferred=True)  # tag trilinos-release-13-0-1
     version('13.0.0', commit='9fec35276d846a667bc668ff4cbdfd8be0dfea08')  # tag trilinos-release-13-0-0
     version('12.18.1', commit='55a75997332636a28afc9db1aee4ae46fe8d93e7')  # tag trilinos-release-12-8-1
