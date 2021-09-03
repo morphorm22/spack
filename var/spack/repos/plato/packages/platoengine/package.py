@@ -151,4 +151,5 @@ class Platoengine(CMakePackage):
         if '+expy' in self.spec:
           run_env.prepend_path('PYTHONPATH', self.prefix.lib)
           run_env.prepend_path('PYTHONPATH', self.prefix.etc)
-          run_env.prepend_path('PATH', self.prefix.etc)
+
+        run_env.prepend_path('PATH', self.prefix.etc)
