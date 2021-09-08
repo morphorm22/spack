@@ -58,6 +58,7 @@ class Platoanalyze(CMakePackage):
     depends_on('platoengine+geometry',                                            when='+geometry')
     depends_on('cmake@3.0.0:', type='build')
     depends_on('python @2.6:2.999',                          when='+python')
+    depends_on('platoengine+expy',                           when='+python')
     depends_on('netlib-lapack')
 
     depends_on('arborx~mpi~cuda~serial @header_only',       when='+meshmap')
