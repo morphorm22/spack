@@ -46,6 +46,7 @@ class OmegaH(CMakePackage):
     depends_on('trilinos +kokkos +teuchos', when='+trilinos')
     depends_on('kokkos-nvcc-wrapper', when='+wrapper')
     depends_on('zlib', when='+zlib')
+    depends_on('cuda@:10.2')
 
     # https://gcc.gnu.org/bugzilla/show_bug.cgi?id=86610
     conflicts('%gcc@8:8.2.99', when='@:9.22.1')
