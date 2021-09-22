@@ -55,7 +55,7 @@ class Platoengine(CMakePackage):
 
     depends_on( 'ipopt@3.12.8', when='+ipopt')
     depends_on( 'trilinos+exodus+chaco+intrepid+shards gotype=int')
-    depends_on( 'trilinos@13.0.1 cxxstd=14',                                         when='~rok~prune')
+    depends_on( 'trilinos@13.0.1 cxxstd=14',                                         when='~rol~prune')
     depends_on( 'mpi',            type=('build','link','run'))
     depends_on( 'cmake@3.0.0:',   type='build')
     depends_on( 'trilinos@rol_update+rol cxxstd=14',                           when='+rol')
@@ -88,6 +88,8 @@ class Platoengine(CMakePackage):
 
         if '+ipopt' in spec:
           options.extend([ '-DIPOPT_ENABLED=ON' ])
+          ipopt_dir = spec['ipopt'].prefix
+          options.extend([ '-DIPOPT_INSTALL_DIR:FILEPATH={0}'.format(ipopt_dir) ])
 
         if '+platoproxy' in spec:
 

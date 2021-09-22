@@ -82,7 +82,7 @@ class Trilinos(CMakePackage, CudaPackage):
             description='turn on RDC for CUDA build')
     variant('cuda', default=False,
             description='build with CUDA')
-    variant('cxxstd', default='11', values=['11', '14', '17'], multi=False)
+    variant('cxxstd', default='14', values=['11', '14', '17'], multi=False)
     variant('hwloc', default=False,
             description='Enable hwloc')
     variant('openmp',       default=False,
