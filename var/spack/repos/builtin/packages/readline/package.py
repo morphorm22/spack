@@ -1,4 +1,4 @@
-# Copyright 2013-2020 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2021 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,7 +14,7 @@ class Readline(AutotoolsPackage, GNUMirrorPackage):
     command lines, to recall and perhaps reedit those lines, and perform
     csh-like history expansion on previous commands."""
 
-    homepage = "http://cnswww.cns.cwru.edu/php/chet/readline/rltop.html"
+    homepage = "https://tiswww.case.edu/php/chet/readline/rltop.html"
     # URL must remain http:// so Spack can bootstrap curl
     gnu_mirror_path = "readline/readline-8.0.tar.gz"
 
@@ -28,8 +28,4 @@ class Readline(AutotoolsPackage, GNUMirrorPackage):
     patch('readline-6.3-upstream_fixes-1.patch', when='@6.3')
 
     def build(self, spec, prefix):
-        options = [
-            'SHLIB_LIBS=-L{0} -lncursesw'.format(spec['ncurses'].prefix.lib)
-        ]
-
-        make(*options)
+        make('SHLIB_LIBS=' + spec['ncurses'].libs.ld_flags)

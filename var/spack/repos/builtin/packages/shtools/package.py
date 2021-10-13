@@ -1,4 +1,4 @@
-# Copyright 2013-2020 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2021 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -31,7 +31,7 @@ class Shtools(MakefilePackage):
         return [
             "F95={0}".format(self.compiler.fc),
             ("F95FLAGS={0} -O3 -std=f2003 -ffast-math".
-             format(self.compiler.pic_flag)),
+             format(self.compiler.fc_pic_flag)),
             "OPENMPFLAGS={0}".format(self.compiler.openmp_flag),
             "BLAS={0}".format(spec['blas'].libs),
             "FFTW={0}".format(spec['fftw'].libs),

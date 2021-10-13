@@ -34,46 +34,48 @@ class Platoanalyze(CMakePackage):
 
     maintainers = ['rviertel', 'jrobbin']
 
-    version('release',   branch='release',   submodules=True)
-    version('develop',   branch='develop',   submodules=True)
+    version('release', branch='release', submodules=True)
+    version('develop', branch='develop', submodules=True, preferred=True)
 
-    variant( 'cuda',       default=True,     description='Compile with cuda'             )
-    variant( 'mpmd',       default=True,     description='Compile with mpmd'             )
-    variant( 'meshmap',    default=True,     description='Compile with MeshMap'          )
-    variant( 'amgx',       default=True,     description='Compile with AMGX'             )
-    variant( 'physics',    default=True,     description='Compile with all Physics'      )
-    variant( 'helmholtz',  default=True,     description='Compile with Helmholtz filter' )
-    variant( 'unittests',  default=True,     description='Compile with unit tests' )
-    variant( 'openmp',     default=False,    description='Compile with openmp'           )
-    variant( 'python',     default=False,    description='Compile with python'           )
-    variant( 'geometry',   default=False,    description='Compile with MLS geometry'     )
-    variant( 'rocket',     default=False,    description='Builds ROCKET and ROCKET_MPMD' )
-    variant( 'esp',        default=False,    description='Compile with ESP'              )
-    variant( 'tpetra',     default=False,    description='Compile with Tpetra'           )
+    variant( 'amgx',       default=True,     description='Compile with AMGX'            )
+    variant( 'cuda',       default=True,     description='Compile with cuda'            )
+    variant( 'meshmap',    default=True,     description='Compile with MeshMap'         )
+    variant( 'mpmd',       default=True,     description='Compile with mpmd'            )
+    variant( 'esp',        default=False,     description='Compile with ESP'             )
+    variant( 'geometry',   default=False,    description='Compile with MLS geometry'    )
+    variant( 'openmp',     default=False,    description='Compile with openmp'          )
+    variant( 'python',     default=False,     description='Compile with python'          )
+    variant( 'rocket',     default=False,    description='Builds ROCKET and ROCKET_MPMD')
+    variant( 'tpetra',     default=False,    description='Compile with Tpetra'          )
+    variant( 'trilinos_rol_branch',     default=False,    description='Use ROL branch of Trilinos when building')
 
-    depends_on('trilinos+epetra')
-    depends_on('trilinos+cuda',                             when='+cuda')
-    depends_on('trilinos+openmp',                           when='+openmp')
-    depends_on('trilinos+tpetra+belos+ifpack2+amesos2+superlu+muelu',     when='+tpetra')
+    depends_on('platoengine+analyze_tests',                                       when='+mpmd')
+    depends_on('trilinos+kokkos+kokkoskernels gotype=int')
+    depends_on('trilinos@rol_update',                                            when='+trilinos_rol_branch')
+    depends_on('trilinos@13.0.1',                                                when='~trilinos_rol_branch')
+    depends_on('trilinos+cuda+wrapper', when='+cuda')
+    depends_on('trilinos+openmp', when='+openmp')
+    depends_on('trilinos+tpetra+belos+ifpack2+amesos2+superlu+muelu+zoltan2',     when='+tpetra')
+    depends_on('trilinos~tpetra~amesos2~ifpack2~belos~muelu~zoltan2',             when='~tpetra')
+    depends_on('trilinos+pamgen',                                                 when='+geometry')
+    depends_on('platoengine+geometry',                                            when='+geometry')
     depends_on('cmake@3.0.0:', type='build')
-    depends_on('python@2.6:2.999',                          when='+python')
-    depends_on('platoengine+stk+iso+expy+analyze_tests',    when='+mpmd'  )
-    depends_on('platoengine+stk+iso+expy+geometry',         when='+geometry')
-    depends_on('platoengine+stk+iso+expy~geometry',         when='~geometry')
-    depends_on('platoengine+stk+iso+expy@develop',          when='@develop' )
-    depends_on('platoengine+stk+iso+expy@release',          when='@release' )
-    depends_on('arborx~mpi~cuda~serial @header_only',       when='+meshmap')
-    depends_on('platoengine+stk+iso+expy+esp',              when='+mpmd+esp')
-    depends_on('amgx',                                      when='+amgx')
-    depends_on('nvccwrapper',                               when='+cuda')
-    depends_on('omega-h+trilinos+exodus+cuda @9.26.5',      when='+cuda', type=('build', 'link', 'run'))
-    depends_on('omega-h+trilinos+exodus~cuda @9.26.5',      when='~cuda', type=('build', 'link', 'run'))
-    depends_on('esp',                                       when='+esp')
+    depends_on('python @2.6:2.999',                          when='+python')
+    depends_on('platoengine+expy',                           when='+python')
+    depends_on('netlib-lapack')
 
-    conflicts('+geometry',  when='~mpmd')
-    conflicts('+meshmap',   when='~mpmd')
-    conflicts('+amgx',      when='~cuda')
-    conflicts('+unittests', when='~physics')
+    depends_on('arborx~mpi~cuda~serial @header_only',       when='+meshmap')
+    depends_on('amgx',                                      when='+amgx')
+    depends_on('omega-h@9.34.1:',                           type=('build', 'link', 'run'))
+    depends_on('esp',                                       when='+esp')
+    depends_on('platoengine+esp',                                       when='+esp')
+
+    conflicts('+geometry', when='~mpmd')
+    conflicts('+meshmap',  when='~mpmd')
+    conflicts('+amgx',     when='~cuda')
+    conflicts('+openmp',     when='+cuda')
+    conflicts('platoengine+rol',     when='~trilinos_rol_branch')
+    conflicts('platoengine+prune',   when='~trilinos_rol_branch')
 
     def cmake_args(self):
         spec = self.spec
@@ -92,8 +94,7 @@ class Platoanalyze(CMakePackage):
 
           omega_h_dir = spec['omega-h'].prefix
           options.extend([ '-DOMEGA_H_PREFIX:PATH={0}'.format(omega_h_dir) ])
-
-        if '~mpmd' in spec:
+        else:
           options.extend([ '-DPLATOANALYZE_ENABLE_MPMD=OFF' ])
 
         if '+python' in spec:
@@ -123,22 +124,8 @@ class Platoanalyze(CMakePackage):
 
         if '+rocket' in spec:
           options.extend([ '-DPLATOANALYZE_ENABLE_ROCKET=ON' ])
-
-        if '~physics' in spec:
-          options.extend([ '-DELLIPTIC=OFF' ])
-          options.extend([ '-DPARABOLIC=OFF' ])
-          options.extend([ '-DHYPERBOLIC=OFF' ])
-          options.extend([ '-DSTABILIZED=OFF' ])
-          options.extend([ '-DPLASTICITY=OFF' ])
-
-        if '+helmholtz' in spec:
-          options.extend([ '-DHELMHOLTZ=ON' ])
-
-        if '~helmholtz' in spec:
-          options.extend([ '-DHELMHOLTZ=OFF' ])
-
-        if '~unittests' in spec:
-          options.extend([ '-DPLATOANALYZE_UNIT_TEST=OFF' ])
+        if '+trilinos_rol_branch' in spec:
+          options.extend([ '-DTRILINOS_ROL_BRANCH=ON' ])
 
         return options
 

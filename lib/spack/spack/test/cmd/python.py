@@ -1,7 +1,9 @@
-# Copyright 2013-2020 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2021 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
+
+import platform
 
 import pytest
 
@@ -14,6 +16,11 @@ python = SpackCommand('python')
 def test_python():
     out = python('-c', 'import spack; print(spack.spack_version)')
     assert out.strip() == spack.spack_version
+
+
+def test_python_version():
+    out = python('-V')
+    assert platform.python_version() in out
 
 
 def test_python_with_module():

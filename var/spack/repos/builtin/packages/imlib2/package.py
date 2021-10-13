@@ -1,18 +1,18 @@
-# Copyright 2013-2020 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2021 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 from spack import *
 
 
-class Imlib2(AutotoolsPackage):
+class Imlib2(AutotoolsPackage, SourceforgePackage):
     """
     Library that does image file loading and saving as well as rendering,
     manipulation, arbitrary polygon support
     """
 
     homepage = "http://sourceforge.net/projects/enlightenment/"
-    url      = "http://downloads.sourceforge.net/enlightenment/imlib2-1.5.1.tar.bz2"
+    sourceforge_mirror_path = "enlightenment/imlib2-1.5.1.tar.bz2"
 
     maintainers = ['TheQueasle']
 

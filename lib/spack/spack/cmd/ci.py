@@ -1,4 +1,4 @@
-# Copyright 2013-2019 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2021 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -17,6 +17,7 @@ import spack.cmd.buildcache as buildcache
 import spack.environment as ev
 import spack.hash_types as ht
 import spack.util.executable as exe
+import spack.util.url as url_util
 
 
 description = "manage continuous integration pipelines"
@@ -34,42 +35,11 @@ def setup_parser(subparser):
     setup_parser.parser = subparser
     subparsers = subparser.add_subparsers(help='CI sub-commands')
 
-    start = subparsers.add_parser('start', help=ci_start.__doc__)
-    start.add_argument(
-        '--output-file', default=None,
-        help="Absolute path to file where generated jobs file should be " +
-             "written.  The default is .gitlab-ci.yml in the root of the " +
-             "repository.")
-    start.add_argument(
-        '--copy-to', default=None,
-        help="Absolute path of additional location where generated jobs " +
-             "yaml file should be copied.  Default is not to copy.")
-    start.add_argument(
-        '--spack-repo', default=None,
-        help="Provide a url for this argument if a custom spack repo " +
-             "should be cloned as a step in each generated job.")
-    start.add_argument(
-        '--spack-ref', default=None,
-        help="Provide a git branch or tag if a custom spack branch " +
-             "should be checked out as a step in each generated job.  " +
-             "This argument is ignored if no --spack-repo is provided.")
-    start.add_argument(
-        '--downstream-repo', default=None,
-        help="Url to repository where commit containing jobs yaml file " +
-             "should be pushed.")
-    start.add_argument(
-        '--branch-name', default='default-branch',
-        help="Name of current branch, used in generation of pushed commit.")
-    start.add_argument(
-        '--commit-sha', default='none',
-        help="SHA of current commit, used in generation of pushed commit.")
-    start.set_defaults(func=ci_start)
-
     # Dynamic generation of the jobs yaml from a spack environment
     generate = subparsers.add_parser('generate', help=ci_generate.__doc__)
     generate.add_argument(
         '--output-file', default=None,
-        help="Absolute path to file where generated jobs file should be " +
+        help="Path to file where generated jobs file should be " +
              "written.  The default is .gitlab-ci.yml in the root of the " +
              "repository.")
     generate.add_argument(
@@ -77,34 +47,45 @@ def setup_parser(subparser):
         help="Absolute path of additional location where generated jobs " +
              "yaml file should be copied.  Default is not to copy.")
     generate.add_argument(
-        '--spack-repo', default=None,
-        help="Provide a url for this argument if a custom spack repo " +
-             "should be cloned as a step in each generated job.")
+        '--optimize', action='store_true', default=False,
+        help="(Experimental) run the generated document through a series of "
+             "optimization passes designed to reduce the size of the "
+             "generated file.")
     generate.add_argument(
-        '--spack-ref', default=None,
-        help="Provide a git branch or tag if a custom spack branch " +
-             "should be checked out as a step in each generated job.  " +
-             "This argument is ignored if no --spack-repo is provided.")
+        '--dependencies', action='store_true', default=False,
+        help="(Experimental) disable DAG scheduling; use "
+             ' "plain" dependencies.')
+    prune_group = generate.add_mutually_exclusive_group()
+    prune_group.add_argument(
+        '--prune-dag', action='store_true', dest='prune_dag',
+        default=True, help="""Do not generate jobs for specs already up to
+date on the mirror""")
+    prune_group.add_argument(
+        '--no-prune-dag', action='store_false', dest='prune_dag',
+        default=True, help="""Generate jobs for specs already up to date
+on the mirror""")
+    generate.add_argument(
+        '--check-index-only', action='store_true', dest='index_only',
+        default=False, help="""Spack always check specs against configured
+binary mirrors when generating the pipeline, regardless of whether or not
+DAG pruning is enabled.  This flag controls whether it might attempt to
+fetch remote spec.yaml files directly (ensuring no spec is rebuilt if it is
+present on the mirror), or whether it should reduce pipeline generation time
+by assuming all remote buildcache indices are up to date and only use those
+to determine whether a given spec is up to date on mirrors.  In the latter
+case, specs might be needlessly rebuilt if remote buildcache indices are out
+of date.""")
     generate.set_defaults(func=ci_generate)
-
-    # Commit and push jobs yaml to a downstream CI repo
-    pushyaml = subparsers.add_parser('pushyaml', help=ci_pushyaml.__doc__)
-    pushyaml.add_argument(
-        '--downstream-repo', default=None,
-        help="Url to repository where commit containing jobs yaml file " +
-             "should be pushed.")
-    pushyaml.add_argument(
-        '--branch-name', default='default-branch',
-        help="Name of current branch, used in generation of pushed commit.")
-    pushyaml.add_argument(
-        '--commit-sha', default='none',
-        help="SHA of current commit, used in generation of pushed commit.")
-    pushyaml.set_defaults(func=ci_pushyaml)
 
     # Check a spec against mirror. Rebuild, create buildcache and push to
     # mirror (if necessary).
     rebuild = subparsers.add_parser('rebuild', help=ci_rebuild.__doc__)
     rebuild.set_defaults(func=ci_rebuild)
+
+    # Rebuild the buildcache index associated with the mirror in the
+    # active, gitlab-enabled environment.
+    index = subparsers.add_parser('rebuild-index', help=ci_reindex.__doc__)
+    index.set_defaults(func=ci_reindex)
 
 
 def ci_generate(args):
@@ -118,84 +99,30 @@ def ci_generate(args):
 
     output_file = args.output_file
     copy_yaml_to = args.copy_to
-    spack_repo = args.spack_repo
-    spack_ref = args.spack_ref
+    run_optimizer = args.optimize
+    use_dependencies = args.dependencies
+    prune_dag = args.prune_dag
+    index_only = args.index_only
 
     if not output_file:
-        gen_ci_dir = os.getcwd()
-        output_file = os.path.join(gen_ci_dir, '.gitlab-ci.yml')
+        output_file = os.path.abspath(".gitlab-ci.yml")
     else:
-        gen_ci_dir = os.path.dirname(output_file)
+        output_file_path = os.path.abspath(output_file)
+        gen_ci_dir = os.path.dirname(output_file_path)
         if not os.path.exists(gen_ci_dir):
             os.makedirs(gen_ci_dir)
 
     # Generate the jobs
     spack_ci.generate_gitlab_ci_yaml(
-        env, True, output_file, spack_repo, spack_ref)
+        env, True, output_file, prune_dag=prune_dag,
+        check_index_only=index_only, run_optimizer=run_optimizer,
+        use_dependencies=use_dependencies)
 
     if copy_yaml_to:
         copy_to_dir = os.path.dirname(copy_yaml_to)
         if not os.path.exists(copy_to_dir):
             os.makedirs(copy_to_dir)
         shutil.copyfile(output_file, copy_yaml_to)
-
-
-def ci_pushyaml(args):
-    """Push the generated jobs yaml file to a remote repository.  The file
-       (.gitlab-ci.yaml) is expected to be in the current directory, which
-       should be the root of the repository."""
-    downstream_repo = args.downstream_repo
-    branch_name = args.branch_name
-    commit_sha = args.commit_sha
-
-    if not downstream_repo:
-        tty.die('No downstream repo to push to, exiting')
-
-    working_dir = os.getcwd()
-    jobs_yaml = os.path.join(working_dir, '.gitlab-ci.yml')
-    git_dir = os.path.join(working_dir, '.git')
-
-    if not os.path.exists(jobs_yaml):
-        tty.die('.gitlab-ci.yml must exist in current directory')
-
-    if not os.path.exists(git_dir):
-        tty.die('.git directory must exist in current directory')
-
-    # Create a temporary working directory
-    with spack_ci.TemporaryDirectory() as temp_dir:
-        git = exe.which('git', required=True)
-
-        # Push a commit with the generated file to the downstream ci repo
-        saved_git_dir = os.path.join(temp_dir, 'original-git-dir')
-
-        shutil.move('.git', saved_git_dir)
-
-        git('init', '.')
-
-        git('config', 'user.email', 'robot@spack.io')
-        git('config', 'user.name', 'Spack Build Bot')
-
-        git('add', '.')
-
-        # If the environment contains a spack directory, do not commit
-        # or push it with any other generated products
-        if os.path.exists('./spack') and os.path.isdir('./spack'):
-            git('rm', '-rf', '--cached', 'spack')
-
-        tty.msg('git commit')
-        commit_message = '{0} {1} ({2})'.format(
-            'Auto-generated commit testing', branch_name, commit_sha)
-
-        git('commit', '-m', '{0}'.format(commit_message))
-
-        tty.msg('git push')
-        git('remote', 'add', 'downstream', downstream_repo)
-        push_to_branch = 'master:multi-ci-{0}'.format(branch_name)
-        git('push', '--force', 'downstream', push_to_branch)
-
-        shutil.rmtree('.git')
-        shutil.move(saved_git_dir, '.git')
-        git('reset', '--hard', 'HEAD')
 
 
 def ci_rebuild(args):
@@ -233,12 +160,15 @@ def ci_rebuild(args):
     # SPACK_SIGNING_KEY
 
     ci_artifact_dir = get_env_var('CI_PROJECT_DIR')
+    ci_pipeline_id = get_env_var('CI_PIPELINE_ID')
     signing_key = get_env_var('SPACK_SIGNING_KEY')
     root_spec = get_env_var('SPACK_ROOT_SPEC')
     job_spec_pkg_name = get_env_var('SPACK_JOB_SPEC_PKG_NAME')
     compiler_action = get_env_var('SPACK_COMPILER_ACTION')
     cdash_build_name = get_env_var('SPACK_CDASH_BUILD_NAME')
     related_builds = get_env_var('SPACK_RELATED_BUILDS_CDASH')
+    pr_env_var = get_env_var('SPACK_IS_PR_PIPELINE')
+    pr_mirror_url = get_env_var('SPACK_PR_MIRROR_URL')
 
     gitlab_ci = None
     if 'gitlab-ci' in yaml_root:
@@ -281,10 +211,6 @@ def ci_rebuild(args):
     tty.debug('job_spec_pkg_name = {0}'.format(job_spec_pkg_name))
     tty.debug('compiler_action = {0}'.format(compiler_action))
 
-    spack_cmd = exe.which('spack')
-
-    os.environ['FORCE_UNSAFE_CONFIGURE'] = '1'
-
     cdash_report_dir = os.path.join(ci_artifact_dir, 'cdash_report')
     temp_dir = os.path.join(ci_artifact_dir, 'jobs_scratch_dir')
     job_log_dir = os.path.join(temp_dir, 'logs')
@@ -293,14 +219,30 @@ def ci_rebuild(args):
     local_mirror_dir = os.path.join(ci_artifact_dir, 'local_mirror')
     build_cache_dir = os.path.join(local_mirror_dir, 'build_cache')
 
+    spack_is_pr_pipeline = True if pr_env_var == 'True' else False
+
+    pipeline_mirror_url = None
+    temp_storage_url_prefix = None
+    if 'temporary-storage-url-prefix' in gitlab_ci:
+        temp_storage_url_prefix = gitlab_ci['temporary-storage-url-prefix']
+        pipeline_mirror_url = url_util.join(
+            temp_storage_url_prefix, ci_pipeline_id)
+
     enable_artifacts_mirror = False
-    artifact_mirror_url = None
     if 'enable-artifacts-buildcache' in gitlab_ci:
         enable_artifacts_mirror = gitlab_ci['enable-artifacts-buildcache']
-        if enable_artifacts_mirror:
-            artifact_mirror_url = 'file://' + local_mirror_dir
+        if (enable_artifacts_mirror or (spack_is_pr_pipeline and
+            not enable_artifacts_mirror and not temp_storage_url_prefix)):
+            # If you explicitly enabled the artifacts buildcache feature, or
+            # if this is a PR pipeline but you did not enable either of the
+            # per-pipeline temporary storage features, we force the use of
+            # artifacts buildcache.  Otherwise jobs will not have binary
+            # dependencies from previous stages available since we do not
+            # allow pushing binaries to the remote mirror during PR pipelines.
+            enable_artifacts_mirror = True
+            pipeline_mirror_url = 'file://' + local_mirror_dir
             mirror_msg = 'artifact buildcache enabled, mirror url: {0}'.format(
-                artifact_mirror_url)
+                pipeline_mirror_url)
             tty.debug(mirror_msg)
 
     # Clean out scratch directory from last stage
@@ -331,16 +273,16 @@ def ci_rebuild(args):
         for next_entry in directory_list:
             tty.debug('  {0}'.format(next_entry))
 
-        # Make a copy of the environment file, so we can overwrite the changed
-        # version in between the two invocations of "spack install"
-        env_src_path = os.path.join(current_directory, 'spack.yaml')
-        env_dst_path = os.path.join(current_directory, 'spack.yaml_BACKUP')
-        shutil.copyfile(env_src_path, env_dst_path)
-
         tty.debug('job concrete spec path: {0}'.format(job_spec_yaml_path))
 
         if signing_key:
             spack_ci.import_signing_key(signing_key)
+
+        can_sign = spack_ci.can_sign_binaries()
+        sign_binaries = can_sign and spack_is_pr_pipeline is False
+
+        can_verify = spack_ci.can_verify_binaries()
+        verify_binaries = can_verify and spack_is_pr_pipeline is False
 
         spack_ci.configure_compilers(compiler_action)
 
@@ -366,27 +308,76 @@ def ci_rebuild(args):
         with open(root_spec_yaml_path, 'w') as fd:
             fd.write(spec_map['root'].to_yaml(hash=ht.build_hash))
 
-        if bindist.needs_rebuild(job_spec, remote_mirror_url, True):
-            # Binary on remote mirror is not up to date, we need to rebuild
-            # it.
-            #
-            # FIXME: ensure mirror precedence causes this local mirror to
-            # be chosen ahead of the remote one when installing deps
+        # TODO: Refactor the spack install command so it's easier to use from
+        # python modules.  Currently we use "exe.which('spack')" to make it
+        # easier to install packages from here, but it introduces some
+        # problems, e.g. if we want the spack command to have access to the
+        # mirrors we're configuring, then we have to use the "spack" command
+        # to add the mirrors too, which in turn means that any code here *not*
+        # using the spack command does *not* have access to the mirrors.
+        spack_cmd = exe.which('spack')
+        mirrors_to_check = {
+            'ci_remote_mirror': remote_mirror_url,
+        }
+
+        def add_mirror(mirror_name, mirror_url):
+            m_args = ['mirror', 'add', mirror_name, mirror_url]
+            tty.debug('Adding mirror: spack {0}'.format(m_args))
+            mirror_add_output = spack_cmd(*m_args)
+            # Workaround: Adding the mirrors above, using "spack_cmd" makes
+            # sure they're available later when we use "spack_cmd" to install
+            # the package.  But then we also need to add them to this dict
+            # below, so they're available in this process (we end up having to
+            # pass them to "bindist.get_mirrors_for_spec()")
+            mirrors_to_check[mirror_name] = mirror_url
+            tty.debug('spack mirror add output: {0}'.format(mirror_add_output))
+
+        # Configure mirrors
+        if pr_mirror_url:
+            add_mirror('ci_pr_mirror', pr_mirror_url)
+
+        if pipeline_mirror_url:
+            add_mirror(spack_ci.TEMP_STORAGE_MIRROR_NAME, pipeline_mirror_url)
+
+        tty.debug('listing spack mirrors:')
+        spack_cmd('mirror', 'list')
+        spack_cmd('config', 'blame', 'mirrors')
+
+        # Checks all mirrors for a built spec with a matching full hash
+        matches = bindist.get_mirrors_for_spec(
+            job_spec, full_hash_match=True, mirrors_to_check=mirrors_to_check,
+            index_only=False)
+
+        if matches:
+            # Got at full hash match on at least one configured mirror.  All
+            # matches represent the fully up-to-date spec, so should all be
+            # equivalent.  If artifacts mirror is enabled, we just pick one
+            # of the matches and download the buildcache files from there to
+            # the artifacts, so they're available to be used by dependent
+            # jobs in subsequent stages.
+            tty.debug('No need to rebuild {0}'.format(job_spec_pkg_name))
             if enable_artifacts_mirror:
-                mirror_add_output = spack_cmd(
-                    'mirror', 'add', 'local_mirror', artifact_mirror_url)
-                tty.debug('spack mirror add:')
-                tty.debug(mirror_add_output)
+                matching_mirror = matches[0]['mirror_url']
+                tty.debug('Getting {0} buildcache from {1}'.format(
+                    job_spec_pkg_name, matching_mirror))
+                tty.debug('Downloading to {0}'.format(build_cache_dir))
+                buildcache.download_buildcache_files(
+                    job_spec, build_cache_dir, True, matching_mirror)
+        else:
+            # No full hash match anywhere means we need to rebuild spec
 
-            mirror_list_output = spack_cmd('mirror', 'list')
-            tty.debug('listing spack mirrors:')
-            tty.debug(mirror_list_output)
+            # Build up common install arguments
+            install_args = [
+                '-d', '-v', '-k', 'install',
+                '--keep-stage',
+                '--require-full-hash-match',
+            ]
 
-            # 2) build up install arguments
-            install_args = ['-d', '-v', '-k', 'install', '--keep-stage']
+            if not verify_binaries:
+                install_args.append('--no-check-signature')
 
-            # 3) create/register a new build on CDash (if enabled)
-            cdash_args = []
+            # Add arguments to create + register a new build on CDash (if
+            # enabled)
             if enable_cdash:
                 tty.debug('Registering build with CDash')
                 (cdash_build_id,
@@ -397,84 +388,65 @@ def ci_rebuild(args):
                 cdash_upload_url = '{0}/submit.php?project={1}'.format(
                     cdash_base_url, cdash_project_enc)
 
-                cdash_args = [
+                install_args.extend([
                     '--cdash-upload-url', cdash_upload_url,
                     '--cdash-build', cdash_build_name,
                     '--cdash-site', cdash_site,
                     '--cdash-buildstamp', cdash_build_stamp,
-                ]
+                ])
 
-            spec_cli_arg = [job_spec_yaml_path]
+            install_args.append(job_spec_yaml_path)
 
-            tty.debug('Installing package')
+            tty.debug('Installing {0} from source'.format(job_spec.name))
 
             try:
-                # Two-pass install is intended to avoid spack trying to
-                # install from buildcache even though the locally computed
-                # full hash is different than the one stored in the spec.yaml
-                # file on the remote mirror.
-                first_pass_args = install_args + [
-                    '--cache-only',
-                    '--only',
-                    'dependencies',
-                ]
-                first_pass_args.extend(spec_cli_arg)
-                tty.debug('First pass install arguments: {0}'.format(
-                    first_pass_args))
-                spack_cmd(*first_pass_args)
+                tty.debug('spack install arguments: {0}'.format(
+                    install_args))
+                spack_cmd(*install_args)
+            finally:
+                spack_ci.copy_stage_logs_to_artifacts(job_spec, job_log_dir)
 
-                # Overwrite the changed environment file so it doesn't
-                # the next install invocation.
-                shutil.copyfile(env_dst_path, env_src_path)
+            # Create buildcache on remote mirror, either on pr-specific
+            # mirror or on mirror defined in spack environment
+            if spack_is_pr_pipeline:
+                buildcache_mirror_url = pr_mirror_url
+            else:
+                buildcache_mirror_url = remote_mirror_url
 
-                second_pass_args = install_args + [
-                    '--no-cache',
-                    '--only',
-                    'package',
-                ]
-                second_pass_args.extend(cdash_args)
-                second_pass_args.extend(spec_cli_arg)
-                tty.debug('Second pass install arguments: {0}'.format(
-                    second_pass_args))
-                spack_cmd(*second_pass_args)
-            except Exception as inst:
-                tty.error('Caught exception during install:')
-                tty.error(inst)
+            # Create buildcache in either the main remote mirror, or in the
+            # per-PR mirror, if this is a PR pipeline
+            spack_ci.push_mirror_contents(
+                env, job_spec, job_spec_yaml_path, buildcache_mirror_url,
+                cdash_build_id, sign_binaries)
 
-            spack_ci.copy_stage_logs_to_artifacts(job_spec, job_log_dir)
+            # Create another copy of that buildcache in the per-pipeline
+            # temporary storage mirror (this is only done if either artifacts
+            # buildcache is enabled or a temporary storage url prefix is set)
+            spack_ci.push_mirror_contents(
+                env, job_spec, job_spec_yaml_path, pipeline_mirror_url,
+                cdash_build_id, sign_binaries)
 
-            # 4) create buildcache on remote mirror
-            spack_ci.push_mirror_contents(env, job_spec, job_spec_yaml_path,
-                                          remote_mirror_url, cdash_build_id)
-
-            # 5) create another copy of that buildcache on "local artifact
-            # mirror" (only done if cash reporting is enabled)
-            spack_ci.push_mirror_contents(env, job_spec, job_spec_yaml_path,
-                                          artifact_mirror_url, cdash_build_id)
-
-            # 6) relate this build to its dependencies on CDash (if enabled)
+            # Relate this build to its dependencies on CDash (if enabled)
             if enable_cdash:
                 spack_ci.relate_cdash_builds(
                     spec_map, cdash_base_url, cdash_build_id, cdash_project,
-                    artifact_mirror_url or remote_mirror_url)
-        else:
-            # There is nothing to do here unless "local artifact mirror" is
-            # enabled, in which case, we need to download the buildcache to
-            # the local artifacts directory to be used by dependent jobs in
-            # subsequent stages
-            tty.debug('No need to rebuild {0}'.format(job_spec_pkg_name))
-            if enable_artifacts_mirror:
-                tty.debug('Getting {0} buildcache'.format(job_spec_pkg_name))
-                tty.debug('Downloading to {0}'.format(build_cache_dir))
-                buildcache.download_buildcache_files(
-                    job_spec, build_cache_dir, True, remote_mirror_url)
+                    pipeline_mirror_url or pr_mirror_url or remote_mirror_url)
 
 
-def ci_start(args):
-    """Kicks of the CI process (currently just calls ci_generate() then
-       ci_push())"""
-    ci_generate(args)
-    ci_pushyaml(args)
+def ci_reindex(args):
+    """Rebuild the buildcache index associated with the mirror in the
+       active, gitlab-enabled environment. """
+    env = ev.get_env(args, 'ci rebuild-index', required=True)
+    yaml_root = ev.config_dict(env.yaml)
+
+    if 'mirrors' not in yaml_root or len(yaml_root['mirrors'].values()) < 1:
+        tty.die('spack ci rebuild-index requires an env containing a mirror')
+
+    ci_mirrors = yaml_root['mirrors']
+    mirror_urls = [url for url in ci_mirrors.values()]
+    remote_mirror_url = mirror_urls[0]
+
+    buildcache.update_index(remote_mirror_url, update_keys=True)
 
 
 def ci(parser, args):

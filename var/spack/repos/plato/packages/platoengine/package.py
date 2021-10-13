@@ -15,8 +15,8 @@ class Platoengine(CMakePackage):
 
     maintainers = ['rviertel', 'jrobbin']
 
-    version('release', branch='release', preferred=True)
-    version('develop', branch='develop')
+    version('release', branch='release')
+    version('develop', branch='develop', preferred=True)
     version('0.6.0', sha256='893f9d6f05ef1d7ca563fcc585e92b2153eb6b9f203fb4cadc73a00da974ac20')
     version('0.5.0', sha256='dc394819026b173749f78ba3a66d0c32d4ec733b68a4d004a4acb70f7668eca2')
     version('0.4.0', sha256='642404480ea2e9b7a2bffcfcc2d526dea2f1b136d786e088a5d91a4ff21b8ef2')
@@ -26,20 +26,20 @@ class Platoengine(CMakePackage):
 
     variant( 'platomain',      default=True,    description='Compile PlatoMain'               )
     variant( 'platostatics',   default=True,    description='Compile PlatoStatics'            )
-    variant( 'unit_testing',   default=True,    description='Add unit testing'                )
     variant( 'regression',     default=True,    description='Add regression tests'            )
     variant( 'ipopt',          default=False,   description='Compile with IPOPT for MMA'      )
-    variant( 'platoproxy',     default=False,   description='Compile PlatoProxy'              )
+    variant( 'unit_testing',   default=True,    description='Add unit testing'                )
+    variant( 'albany_tests',   default=False,   description='Configure Albany tests'          )
+    variant( 'analyze_tests',  default=False,   description='Configure Analyze tests'         )
+    variant( 'cuda',           default=False,   description='Compile with cuda'               )
+    variant( 'esp',            default=False,    description='Turn on esp'                     )
     variant( 'expy',           default=False,   description='Compile exodus/python API'       )
     variant( 'geometry',       default=False,   description='Turn on Plato Geometry'          )
     variant( 'iso',            default=False,   description='Turn on iso extraction'          )
-    variant( 'esp',            default=False,   description='Turn on esp'                     )
-    variant( 'stk',            default=False,   description='Turn on use of stk'              )
+    variant( 'platoproxy',     default=False,   description='Compile PlatoProxy'              )
     variant( 'prune',          default=False,   description='Turn on use of prune and refine' )
     variant( 'rol',            default=False,   description='Turn on use of rol'              )
-    variant( 'cuda',           default=False,   description='Compile with cuda'               )
-    variant( 'albany_tests',   default=False,   description='Configure Albany tests'          )
-    variant( 'analyze_tests',  default=False,   description='Configure Analyze tests'         )
+    variant( 'stk',            default=False,   description='Turn on use of stk'              )
     variant( 'tpetra_tests',   default=False,   description='Configure Tpetra tests'          )
 
     conflicts( '+expy', when='-platomain')
@@ -53,24 +53,23 @@ class Platoengine(CMakePackage):
     conflicts( '@0.6.0', when='+prune')
 
     depends_on( 'ipopt@3.12.8', when='+ipopt')
-    depends_on( 'trilinos~gtest')
+    depends_on( 'trilinos+exodus+chaco+intrepid+shards gotype=int')
+    depends_on( 'trilinos@13.0.1 cxxstd=14',                                         when='~rol~prune')
     depends_on( 'mpi',            type=('build','link','run'))
     depends_on( 'cmake@3.0.0:',   type='build')
-    depends_on( 'trilinos+rol',                               when='+rol')
+    depends_on( 'trilinos@rol_update+rol cxxstd=14',                           when='+rol')
     depends_on( 'trilinos+zlib+pnetcdf+boost \
-                                       +stk~gtest+hdf5+ifpack+amesos+belos+muelu+tpetra',           when='+stk')
-    depends_on( 'superlu', when='+stk')
-   # depends_on( 'armadillo', when='+stk')
-    depends_on( 'trilinos+percept+zoltan+zlib+pnetcdf+boost \
-                                       +stk~gtest',           when='+prune')
+                                       +stk',           when='+stk')
+    depends_on( 'trilinos@rol_update+percept+zoltan+zlib+pnetcdf+boost \
+                                       +stk cxxstd=14',           when='+prune')
     depends_on( 'trilinos+zlib+pnetcdf+boost+intrepid2 \
                              +minitensor+pamgen',             when='+geometry')
     depends_on( 'googletest',                                 when='+unit_testing' )
     depends_on( 'python@2.6:2.999', type=('build', 'link', 'run'), when='+expy'    )
     depends_on( 'nlopt',                                      when='+expy'         )
-    depends_on( 'py-numpy@1.16.5',                            when='+expy'         )
-    depends_on( 'nvccwrapper',                                when='+cuda')
-    depends_on( 'trilinos+cuda',                              when='+cuda')
+    # py-setuptools later than v44.1.0 require python 3.x
+    depends_on( 'py-numpy@1.16.5 ^py-setuptools@44.1.0',      when='+expy'         )
+    depends_on( 'trilinos+cuda+wrapper',                              when='+cuda')
 
     depends_on( 'esp', when='+esp')
     depends_on( 'hdf5+cxx~debug+fortran+hl+mpi+pic+shared~szip~threadsafe',when='+stk')
@@ -88,6 +87,10 @@ class Platoengine(CMakePackage):
 
         if '+ipopt' in spec:
           options.extend([ '-DIPOPT_ENABLED=ON' ])
+          ipopt_dir = spec['ipopt'].prefix
+          options.extend([ '-DIPOPT_INSTALL_DIR:FILEPATH={0}'.format(ipopt_dir) ])
+
+        if '+platoproxy' in spec:
 
         if '+platoproxy' in spec:
           options.extend([ '-DPLATOPROXY=ON' ])
@@ -106,6 +109,9 @@ class Platoengine(CMakePackage):
         if '+unit_testing' in spec:
           options.extend([ '-DUNIT_TESTING=ON' ])
           gtest_dir = spec['googletest'].prefix
+        else:
+          options.extend([ '-DUNIT_TESTING=OFF' ])
+
           options.extend([ '-DGTEST_HOME:FILEPATH={0}'.format(gtest_dir) ])
 
         if '+iso' in spec:
@@ -152,4 +158,5 @@ class Platoengine(CMakePackage):
         if '+expy' in self.spec:
           run_env.prepend_path('PYTHONPATH', self.prefix.lib)
           run_env.prepend_path('PYTHONPATH', self.prefix.etc)
-          run_env.prepend_path('PATH', self.prefix.etc)
+
+        run_env.prepend_path('PATH', self.prefix.etc)

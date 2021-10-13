@@ -1,9 +1,10 @@
-# Copyright 2013-2020 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2021 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 from spack import *
+from spack.util.environment import SetEnv
 
 
 class Hpctoolkit(AutotoolsPackage):
@@ -18,7 +19,13 @@ class Hpctoolkit(AutotoolsPackage):
     git      = "https://github.com/HPCToolkit/hpctoolkit.git"
     maintainers = ['mwkrentel']
 
-    version('master', branch='master')
+    version('develop', branch='develop')
+    version('master',  branch='master')
+    # version('2021.02.10', commit='9eea97d9aaff38f6460f25957cd1588093fb19c7')
+    version('2020.08.03', commit='d9d13c705d81e5de38e624254cf0875cce6add9a')
+    version('2020.07.21', commit='4e56c780cffc53875aca67d6472a2fb3678970eb')
+    version('2020.06.12', commit='ac6ae1156e77d35596fea743ed8ae768f7222f19')
+    version('2020.03.01', commit='94ede4e6fa1e05e6f080be8dc388240ea027f769')
     version('2019.12.28', commit='b4e1877ff96069fd8ed0fdf0e36283a5b4b62240')
     version('2019.08.14', commit='6ea44ed3f93ede2d0a48937f288a2d41188a277c')
     version('2018.12.28', commit='8dbf0d543171ffa9885344f32f23cc6f7f6e39bc')
@@ -33,17 +40,13 @@ class Hpctoolkit(AutotoolsPackage):
             description='Build for Cray compute nodes, including '
             'hpcprof-mpi.')
 
-    variant('bgq', default=False,
-            description='Build for Blue Gene compute nodes, including '
-            'hpcprof-mpi (up to 2019.12.28 only).')
-
     variant('mpi', default=False,
             description='Build hpcprof-mpi, the MPI version of hpcprof.')
 
     # We can't build with both PAPI and perfmon for risk of segfault
     # from mismatched header files (unless PAPI installs the perfmon
     # headers).
-    variant('papi', default=False,
+    variant('papi', default=True,
             description='Use PAPI instead of perfmon for access to '
             'the hardware performance counters.')
 
@@ -52,27 +55,36 @@ class Hpctoolkit(AutotoolsPackage):
             'for the compute nodes.')
 
     variant('cuda', default=False,
-            description='Support CUDA on NVIDIA GPUs (master branch).')
+            description='Support CUDA on NVIDIA GPUs (2020.03.01 or later).')
+
+    variant('rocm', default=False,
+            description='Support ROCM on AMD GPUs, requires ROCM as '
+            'external packages (2021.02.10 or later).')
 
     boost_libs = (
         '+atomic +chrono +date_time +filesystem +system +thread +timer'
         ' +graph +regex +shared +multithreaded visibility=global'
     )
 
-    depends_on('binutils+libiberty~nls', type='link')
+    depends_on('binutils@:2.34 +libiberty', type='link', when='@2021.00:')
+    depends_on('binutils@:2.34 +libiberty~nls', type='link', when='@2020.04:2020.99')
+    depends_on('binutils@:2.33.1 +libiberty~nls', type='link', when='@:2020.03.99')
     depends_on('boost' + boost_libs)
-    depends_on('bzip2', type='link')
-    depends_on('dyninst')
-    depends_on('elfutils~nls', type='link')
-    depends_on('intel-tbb')
+    depends_on('bzip2+shared', type='link')
+    depends_on('dyninst@9.3.2:')
+    depends_on('elfutils+bzip2+xz~nls', type='link')
+    depends_on('gotcha@1.0.3:')
+    depends_on('intel-tbb+shared')
     depends_on('libdwarf')
-    depends_on('libmonitor+hpctoolkit')
-    depends_on('libmonitor+bgq', when='+bgq')
-    depends_on('libunwind@1.4:')
+    depends_on('libmonitor+hpctoolkit~dlopen', when='@2021.00:')
+    depends_on('libmonitor+hpctoolkit', when='@:2020.99')
+    depends_on('libunwind@1.4: +xz+pic', when='@2020.09.00:')
+    depends_on('libunwind@1.4: +xz', when='@:2020.08.99')
     depends_on('mbedtls+pic')
     depends_on('xerces-c transcoder=iconv')
-    depends_on('xz', type='link')
-    depends_on('zlib')
+    depends_on('xz+pic', type='link', when='@2020.09.00:')
+    depends_on('xz', type='link', when='@:2020.08.99')
+    depends_on('zlib+shared')
 
     depends_on('cuda', when='+cuda')
     depends_on('intel-xed', when='target=x86_64:')
@@ -80,14 +92,21 @@ class Hpctoolkit(AutotoolsPackage):
     depends_on('libpfm4', when='~papi')
     depends_on('mpi', when='+mpi')
 
+    depends_on('hip', when='+rocm')
+    depends_on('rocm-dbgapi', when='+rocm')
+    depends_on('roctracer-dev', when='+rocm')
+
     conflicts('%gcc@:4.7.99', when='^dyninst@10.0.0:',
               msg='hpctoolkit requires gnu gcc 4.8.x or later')
 
-    conflicts('%gcc@:4.99.99', when='@master',
-              msg='the master branch requires gnu gcc 5.x or later')
+    conflicts('%gcc@:4.99.99', when='@2020.03.01:',
+              msg='hpctoolkit requires gnu gcc 5.x or later')
 
-    conflicts('+cuda', when='@2018.0.0:2019.99.99',
-              msg='cuda is only available on the master branch')
+    conflicts('+cuda', when='@:2019.99.99',
+              msg='cuda requires 2020.03.01 or later')
+
+    conflicts('+rocm', when='@:2020.99.99',
+              msg='rocm requires 2021.02.10 or later')
 
     flag_handler = AutotoolsPackage.build_system_flags
 
@@ -100,6 +119,7 @@ class Hpctoolkit(AutotoolsPackage):
             '--with-bzip=%s'         % spec['bzip2'].prefix,
             '--with-dyninst=%s'      % spec['dyninst'].prefix,
             '--with-elfutils=%s'     % spec['elfutils'].prefix,
+            '--with-gotcha=%s'       % spec['gotcha'].prefix,
             '--with-tbb=%s'          % spec['intel-tbb'].prefix,
             '--with-libdwarf=%s'     % spec['libdwarf'].prefix,
             '--with-libmonitor=%s'   % spec['libmonitor'].prefix,
@@ -111,11 +131,7 @@ class Hpctoolkit(AutotoolsPackage):
         ]
 
         if '+cuda' in spec:
-            cupti_path = join_path(spec['cuda'].prefix, 'extras', 'CUPTI')
-            args.extend([
-                '--with-cuda=%s' % spec['cuda'].prefix,
-                '--with-cupti=%s' % cupti_path,
-            ])
+            args.append('--with-cuda=%s' % spec['cuda'].prefix)
 
         if spec.target.family == 'x86_64':
             args.append('--with-xed=%s' % spec['intel-xed'].prefix)
@@ -125,17 +141,18 @@ class Hpctoolkit(AutotoolsPackage):
         else:
             args.append('--with-perfmon=%s' % spec['libpfm4'].prefix)
 
+        if spec.satisfies('+rocm'):
+            args.extend([
+                '--with-rocm-hip=%s'    % spec['hip'].prefix,
+                '--with-rocm-dbgapi=%s' % spec['rocm-dbgapi'].prefix,
+                '--with-rocm-tracer=%s' % spec['roctracer-dev'].prefix,
+            ])
+
         # MPI options for hpcprof-mpi.
         if '+cray' in spec:
             args.extend([
                 '--enable-mpi-search=cray',
                 '--enable-all-static',
-            ])
-        elif '+bgq' in spec:
-            args.extend([
-                '--enable-mpi-search=bgq',
-                '--enable-all-static',
-                '--enable-bgq',
             ])
         elif '+mpi' in spec:
             args.append('MPICXX=%s' % spec['mpi'].mpicxx)
@@ -144,3 +161,18 @@ class Hpctoolkit(AutotoolsPackage):
             args.append('--enable-all-static')
 
         return args
+
+    # Remove setenv of ROCM, HIP, etc from the module file.  Loading
+    # the hpctoolkit module is not relevant to building a GPU app and
+    # some variables (HIP_PATH) intefere with building the app.
+    def setup_run_environment(self, env):
+        keeplist = []
+        for elt in env.env_modifications:
+            if not (isinstance(elt, SetEnv)
+                    and (elt.name.find('ROCM') >= 0
+                         or elt.name.find('HIP') >= 0
+                         or elt.name.find('CUDA') >= 0)):
+                keeplist.append(elt)
+
+        env.clear()
+        env.env_modifications = keeplist

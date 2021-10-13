@@ -1,10 +1,17 @@
-# Copyright 2013-2020 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2021 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 """This module contains the following external, potentially separately
 licensed, packages that are included in Spack:
+
+archspec
+--------
+
+* Homepage: https://pypi.python.org/pypi/archspec
+* Usage: Labeling, comparison and detection of microarchitectures
+* Version: 0.1.2 (commit 068b0ebd641211971acf10f39aa876703a34bae4)
 
 argparse
 --------
@@ -88,10 +95,11 @@ pytest
 * Homepage: https://pypi.python.org/pypi/pytest
 * Usage: Testing framework used by Spack.
 * Version: 3.2.5 (last version supporting Python 2.6)
-* Note: This package has been slightly modified to improve
-  Python 2.6 compatibility. See the following commit if the
-  vendored copy ever needs to be updated again:
-  https://github.com/spack/spack/pull/6801/commits/ff513c39f2c67ff615de5cbc581dd69a8ec96526
+* Note: This package has been slightly modified:
+  * We improve Python 2.6 compatibility. See:
+    https://github.com/spack/spack/pull/6801.
+  * We have patched pytest not to depend on setuptools. See:
+    https://github.com/spack/spack/pull/15612
 
 ruamel.yaml
 ------
@@ -125,4 +133,5 @@ altgraph
 * Homepage: https://altgraph.readthedocs.io/en/latest/index.html
 * Usage: dependency of macholib
 * Version: 0.16.1
+
 """

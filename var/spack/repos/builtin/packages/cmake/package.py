@@ -1,24 +1,23 @@
-# Copyright 2013-2020 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2021 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-from spack import *
+import re
 
 
 class Cmake(Package):
     """A cross-platform, open-source build system. CMake is a family of
-       tools designed to build, test and package software."""
+    tools designed to build, test and package software.
+    """
     homepage = 'https://www.cmake.org'
-    url      = 'https://github.com/Kitware/CMake/releases/download/v3.15.5/cmake-3.15.5.tar.gz'
+    url = 'https://github.com/Kitware/CMake/releases/download/v3.19.0/cmake-3.19.0.tar.gz'
     maintainers = ['chuckatkins']
 
-    version('3.20.2',   sha256='aecf6ecb975179eb3bb6a4a50cae192d41e92b9372b02300f9e8f1d5f559544e')
-    version('3.20.1',   sha256='3f1808b9b00281df06c91dd7a021d7f52f724101000da7985a401678dfe035b0')
-    version('3.20.0',   sha256='9c06b2ddf7c337e31d8201f6ebcd3bba86a9a033976a9aee207fe0c6971f4755')
-    version('3.19.8',   sha256='09b4fa4837aae55c75fb170f6a6e2b44818deba48335d1969deddfbb34e30369')
-    version('3.19.7',   sha256='58a15f0d56a0afccc3cc5371234fce73fcc6c8f9dbd775d898e510b83175588e')
-    version('3.19.6',   sha256='ec87ab67c45f47c4285f204280c5cde48e1c920cfcfed1555b27fb3b1a1d20ba')
+    tags = ['build-tools']
+
+    executables = ['^cmake$']
+
     version('3.19.5',   sha256='c432296eb5dec6d71eae15d140f6297d63df44e9ffe3e453628d1dc8fc4201ce')
     version('3.19.4',   sha256='7d0232b9f1c57e8de81f38071ef8203e6820fe7eec8ae46a1df125d88dbcc2e1')
     version('3.19.3',   sha256='3faca7c131494a1e34d66e9f8972ff5369e48d419ea8ceaa3dc15b4c11367732')
@@ -47,18 +46,23 @@ class Cmake(Package):
     version('3.16.2',   sha256='8c09786ec60ca2be354c29829072c38113de9184f29928eb9da8446a5f2ce6a9')
     version('3.16.1',   sha256='a275b3168fa8626eca4465da7bb159ff07c8c6cb0fb7179be59e12cbdfa725fd')
     version('3.16.0',   sha256='6da56556c63cab6e9a3e1656e8763ed4a841ac9859fefb63cbe79472e67e8c5f')
+    version('3.15.7',   sha256='71999d8a14c9b51708847371250a61533439a7331eb7702ac105cfb3cb1be54b')
+    version('3.15.6',   sha256='3fa17992ac97d3fc856ffba5d3b10578744ea5b4736818f01e6067f0253b2db5')
     version('3.15.5',   sha256='fbdd7cef15c0ced06bb13024bfda0ecc0dedbcaaaa6b8a5d368c75255243beb4')
     version('3.15.4',   sha256='8a211589ea21374e49b25fc1fc170e2d5c7462b795f1b29c84dd0e984301ed7a')
     version('3.15.3',   sha256='13958243a01365b05652fa01b21d40fa834f70a9e30efa69c02604e64f58b8f5')
     version('3.15.2',   sha256='539088cb29a68e6d6a8fba5c00951e5e5b1a92c68fa38a83e1ed2f355933f768')
     version('3.15.1',   sha256='18dec548d8f8b04d53c60f9cedcebaa6762f8425339d1e2c889c383d3ccdd7f7')
     version('3.15.0',   sha256='0678d74a45832cacaea053d85a5685f3ed8352475e6ddf9fcb742ffca00199b5')
+    version('3.14.7',   sha256='9221993e0af3e6d10124d840ff24f5b2f3b884416fca04d3312cb0388dec1385')
+    version('3.14.6',   sha256='4e8ea11cabe459308671b476469eace1622e770317a15951d7b55a82ccaaccb9')
     version('3.14.5',   sha256='505ae49ebe3c63c595fa5f814975d8b72848447ee13b6613b0f8b96ebda18c06')
     version('3.14.4',   sha256='00b4dc9b0066079d10f16eed32ec592963a44e7967371d2f5077fd1670ff36d9')
     version('3.14.3',   sha256='215d0b64e81307182b29b63e562edf30b3875b834efdad09b3fcb5a7d2f4b632')
     version('3.14.2',   sha256='a3cbf562b99270c0ff192f692139e98c605f292bfdbc04d70da0309a5358e71e')
     version('3.14.1',   sha256='7321be640406338fc12590609c42b0fae7ea12980855c1be363d25dcd76bb25f')
     version('3.14.0',   sha256='aa76ba67b3c2af1946701f847073f4652af5cbd9f141f221c97af99127e75502')
+    version('3.13.5',   sha256='526db6a4b47772d1943b2f86de693e712f9dacf3d7c13b19197c9bef133766a5')
     version('3.13.4',   sha256='fdd928fee35f472920071d1c7f1a6a2b72c9b25e04f7a37b409349aef3f20e9b')
     version('3.13.3',   sha256='665f905036b1f731a2a16f83fb298b1fb9d0f98c382625d023097151ad016b25')
     version('3.13.2',   sha256='c925e7d2c5ba511a69f43543ed7b4182a7d446c274c7480d0e42cd933076ae25')
@@ -80,6 +84,7 @@ class Cmake(Package):
     version('3.10.0',   sha256='b3345c17609ea0f039960ef470aa099de9942135990930a57c14575aae884987')
     version('3.9.6',    sha256='7410851a783a41b521214ad987bb534a7e4a65e059651a2514e6ebfc8f46b218')
     version('3.9.4',    sha256='b5d86f12ae0072db520fdbdad67405f799eb728b610ed66043c20a92b4906ca1')
+    version('3.9.2',    sha256='954a5801a456ee48e76f01107c9a4961677dd0f3e115275bbd18410dc22ba3c1')
     version('3.9.0',    sha256='167701525183dbb722b9ffe69fb525aa2b81798cf12f5ce1c020c93394dfae0f')
     version('3.8.2',    sha256='da3072794eb4c09f2d782fcee043847b99bb4cf8d4573978d9b2024214d6e92d')
     version('3.8.1',    sha256='ce5d9161396e06501b00e52933783150a87c33080d4bdcef461b5b7fd24ac228')
@@ -120,6 +125,14 @@ class Cmake(Package):
     variant('openssl', default=True,  description="Enables CMake's OpenSSL features")
     variant('ncurses', default=True,  description='Enables the build of the ncurses gui')
 
+    # Does not compile and is not covered in upstream CI (yet).
+    conflicts('%gcc platform=darwin',
+              msg='CMake does not compile with GCC on macOS yet, '
+                  'please use %apple-clang. '
+                  'See: https://gitlab.kitware.com/cmake/cmake/-/issues/21135')
+
+    conflicts('%nvhpc')
+
     # Really this should conflict since it's enabling or disabling openssl for
     # CMake's internal copy of curl.  Ideally we'd want a way to have the
     # openssl variant disabled when ~ownlibs but there's not really a way to
@@ -149,8 +162,26 @@ class Cmake(Package):
     # https://gitlab.kitware.com/cmake/cmake/issues/16226
     patch('intel-c-gnu11.patch', when='@3.6.0:3.6.1')
 
+    # Cannot build with Intel again, should be fixed in 3.17.4 and 3.18.1
+    # https://gitlab.kitware.com/cmake/cmake/-/issues/21013
+    patch('intel-cxx-bootstrap.patch', when='@3.17.0:3.17.3,3.18.0')
+
     # https://gitlab.kitware.com/cmake/cmake/issues/18232
     patch('nag-response-files.patch', when='@3.7:3.12')
+
+    # Cray libhugetlbfs and icpc warnings failing CXX tests
+    # https://gitlab.kitware.com/cmake/cmake/-/merge_requests/4698
+    # https://gitlab.kitware.com/cmake/cmake/-/merge_requests/4681
+    patch('ignore_crayxc_warnings.patch', when='@3.7:3.17.2')
+
+    # The Fujitsu compiler requires the '--linkfortran' option
+    # to combine C++ and Fortran programs.
+    patch('fujitsu_add_linker_option.patch', when='%fj')
+
+    # Remove -A from the C++ flags we use when CXX_EXTENSIONS is OFF
+    # Should be fixed in 3.19.
+    # https://gitlab.kitware.com/cmake/cmake/-/merge_requests/5025
+    patch('pgi-cxx-ansi.patch', when='@3.15:3.18.99')
 
     conflicts('+qt', when='^qt@5.4.0')  # qt-5.4.0 has broken CMake modules
 
@@ -160,6 +191,12 @@ class Cmake(Package):
               msg="Intel 14 has immature C++11 support")
 
     phases = ['bootstrap', 'build', 'install']
+
+    @classmethod
+    def determine_version(cls, exe):
+        output = Executable(exe)('--version', output=str, error=str)
+        match = re.search(r'cmake.*version\s+(\S+)', output)
+        return match.group(1) if match else None
 
     def flag_handler(self, name, flags):
         if name == 'cxxflags' and self.compiler.name == 'fj':
@@ -226,9 +263,24 @@ class Cmake(Package):
 
     @run_after('build')
     @on_package_attributes(run_tests=True)
-    def test(self):
+    def build_test(self):
         # Some tests fail, takes forever
         make('test')
 
     def install(self, spec, prefix):
         make('install')
+
+        if spec.satisfies('%fj'):
+            for f in find(self.prefix, 'FindMPI.cmake', recursive=True):
+                filter_file('mpcc_r)', 'mpcc_r mpifcc)', f, string=True)
+                filter_file('mpc++_r)', 'mpc++_r mpiFCC)', f, string=True)
+                filter_file('mpifc)', 'mpifc mpifrt)', f, string=True)
+
+    def test(self):
+        """Perform smoke tests on the installed package."""
+        spec_vers_str = 'version {0}'.format(self.spec.version)
+
+        for exe in ['ccmake', 'cmake', 'cpack', 'ctest']:
+            reason = 'test version of {0} is {1}'.format(exe, spec_vers_str)
+            self.run_test(exe, ['--version'], [spec_vers_str],
+                          installed=True, purpose=reason, skip_missing=True)

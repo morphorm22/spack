@@ -1,4 +1,4 @@
-# Copyright 2013-2020 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2021 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,16 +11,18 @@ class OmegaH(CMakePackage):
     hardware including GPUs.
     """
 
-    homepage = "https://github.com/SNLComputation/omega_h"
-    url      = "https://github.com/SNLComputation/omega_h/archive/v9.29.0.tar.gz"
-    git      = "https://github.com/SNLComputation/omega_h.git"
+    homepage = "https://github.com/sandialabs/omega_h"
+    url      = "https://github.com/sandialabs/omega_h/archive/v9.29.0.tar.gz"
+    git      = "https://github.com/sandialabs/omega_h.git"
 
     maintainers = ['ibaned']
 
-    version('develop', branch='master')
+    version('main', branch='main')
+    version('develop', branch='develop')
+    version('9.34.1', sha256='3a812da3b8df3e0e5d78055e91ad23333761bcd9ed9b2c8c13ee1ba3d702e46c')
+    version('9.32.5', sha256='963a203e9117024cd48d829d82b8543cd9133477fdc15386113b594fdc3246d8')
     version('9.29.0', sha256='b41964b018909ffe9cea91c23a0509b259bfbcf56874fcdf6bd9f6a179938014')
     version('9.27.0', sha256='aa51f83508cbd14a41ae953bda7da98a6ad2979465c76e5b3a3d9a7a651cb34a')
-    version('9.26.5', sha256='fdc2ba1be8427fc78291de4ea05928be10f605c9b20691ebdf43b4f8e5145a83', preferred=True)
     version('9.22.2', sha256='ab5636be9dc171a514a7015df472bd85ab86fa257806b41696170842eabea37d')
     version('9.19.1', sha256='60ef65c2957ce03ef9d1b995d842fb65c32c5659d064de002c071effe66b1b1f')
     version('9.19.0', sha256='4a1606c4e7287a1b67359cf6ef1c2d7e24b7dc379065566a1d2e0b0330c0abbd')
@@ -38,26 +40,17 @@ class OmegaH(CMakePackage):
     variant('optimize', default=True, description='Compile C++ with optimization')
     variant('symbols', default=True, description='Compile C++ with debug symbols')
     variant('warnings', default=False, description='Compile C++ with warnings')
-    variant('exodus',       default=True,  description='Activates Exodus mesh support')
-    variant('cuda',         default=False,  description='Activates Cuda support')
-    variant('build_type', default='Release',
-        description='The build type to build',
-        values=('Debug', 'Release', 'DebugRelease'))
 
     depends_on('gmsh', when='+examples', type='build')
     depends_on('mpi', when='+mpi')
     depends_on('trilinos +kokkos +teuchos', when='+trilinos')
+    depends_on('kokkos-nvcc-wrapper', when='+wrapper')
     depends_on('zlib', when='+zlib')
-    depends_on('nvcc-wrapper', when="+cuda")
-    depends_on('trilinos+cuda', when='+cuda')
-    depends_on('trilinos~cuda', when='~cuda')
-
-    patch('exodus.patch', when='@9.26.5')
+    depends_on('cuda@:10.2')
 
     # https://gcc.gnu.org/bugzilla/show_bug.cgi?id=86610
     conflicts('%gcc@8:8.2.99', when='@:9.22.1')
-    conflicts( '+exodus', when='~trilinos')
-    conflicts( '+cuda', when='~trilinos')
+    conflicts('+trilinos', when='~mpi')
 
     def _bob_options(self):
         cmake_var_prefix = 'Omega_h_CXX_'
@@ -69,34 +62,30 @@ class OmegaH(CMakePackage):
                 yield '-D' + cmake_var + ':BOOL=FALSE'
 
     def cmake_args(self):
-        args = ['-DUSE_XSDK_DEFAULTS:BOOL=OFF']
-        if '+cuda' in self.spec:
-            args.append('-DOmega_h_USE_CUDA:BOOL=ON')
-            args.append('-DCMAKE_CXX_FLAGS=-expt-extended-lambda --std=c++11')
-            args.append('-DCMAKE_CXX_COMPILER=%s' % join_path(self.spec['nvccwrapper'].prefix.etc, 'nvcc_wrapper'))
-        else:
-            args.append('-DOmega_h_USE_CUDA:BOOL=OFF')
+        args = []
         if '+shared' in self.spec:
             args.append('-DBUILD_SHARED_LIBS:BOOL=ON')
         else:
             args.append('-DBUILD_SHARED_LIBS:BOOL=OFF')
         if '+mpi' in self.spec:
-            args.append('-DOmega_h_USE_MPI:BOOL=ON')
-            if '~cuda' in self.spec:
-                args.append('-DCMAKE_CXX_COMPILER:FILEPATH={0}'.format(self.spec['mpi'].mpicxx))
+            # only point to the mpi compiler for now.  turning on the flag below
+            # prompts omega-h to do a 'find_package(MPI)' which adds a MPI::MPI_CXX
+            # dependency to omega-h targets. This causes problems in PA.
+            # args.append('-DOmega_h_USE_MPI:BOOL=ON')
+            args.append('-DCMAKE_CXX_COMPILER:FILEPATH={0}'.format(self.spec['mpi'].mpicxx))
         else:
             args.append('-DOmega_h_USE_MPI:BOOL=OFF')
         if '+trilinos' in self.spec:
-            if '+exodus' in self.spec:
-                args.append('-DOmega_h_USE_SEACASExodus:BOOL=ON')
-            args.append('-DOmega_h_USE_Trilinos:BOOL=ON')
-            args.append('-DTrilinos_PREFIX:PATH={0}'.format(self.spec['trilinos'].prefix))
-        else:
-            args.append('-DOmega_h_USE_Trilinos:BOOL=OFF')
+            args.append('-DOmega_h_USE_Kokkos:BOOL=ON')
+            args.append('-DOmega_h_USE_SEACASExodus:BOOL=ON')
+            # if SEACASExodus is on, omega-h does a 'find_package(HDF5)' which fails
+            # because the hdf5 spack package doesn't create a *config.cmake file.  
+            # Finding hdf5 isn't necessary anyway when building with trilinos.
+            args.append('-DOmega_h_USE_HDF5:BOOL=OFF')
+            args.append('-DKokkos_PREFIX:PATH={0}'.format(self.spec['trilinos'].prefix))
         if '+zlib' in self.spec:
             args.append('-DOmega_h_USE_ZLIB:BOOL=ON')
-            args.append('-DZLIB_ROOT:PATH={0}'.format(
-                self.spec['zlib'].prefix))
+            args.append('-DZLIB_ROOT:PATH={0}'.format(self.spec['zlib'].prefix))
         else:
             args.append('-DOmega_h_USE_ZLIB:BOOL=OFF')
         if '+examples' in self.spec:
