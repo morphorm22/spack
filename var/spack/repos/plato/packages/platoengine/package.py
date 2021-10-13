@@ -58,7 +58,9 @@ class Platoengine(CMakePackage):
     depends_on( 'cmake@3.0.0:',   type='build')
     depends_on( 'trilinos+rol',                               when='+rol')
     depends_on( 'trilinos+zlib+pnetcdf+boost \
-                                       +stk~gtest',           when='+stk')
+                                       +stk~gtest+hdf5+ifpack+amesos+belos+muelu+tpetra',           when='+stk')
+    depends_on( 'superlu', when='+stk')
+   # depends_on( 'armadillo', when='+stk')
     depends_on( 'trilinos+percept+zoltan+zlib+pnetcdf+boost \
                                        +stk~gtest',           when='+prune')
     depends_on( 'trilinos+zlib+pnetcdf+boost+intrepid2 \
@@ -71,7 +73,7 @@ class Platoengine(CMakePackage):
     depends_on( 'trilinos+cuda',                              when='+cuda')
 
     depends_on( 'esp', when='+esp')
-
+    depends_on( 'hdf5+cxx~debug+fortran+hl+mpi+pic+shared~szip~threadsafe',when='+stk')
     def cmake_args(self):
         spec = self.spec
 
