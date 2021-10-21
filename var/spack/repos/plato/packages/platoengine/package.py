@@ -40,8 +40,8 @@ class Platoengine(CMakePackage):
     variant( 'prune',          default=False,   description='Turn on use of prune and refine' )
     variant( 'rol',            default=False,   description='Turn on use of rol'              )
     variant( 'stk',            default=False,   description='Turn on use of stk'              )
+    variant( 'xtk',            default=False,   description='Turn on use of xtk'          )
     variant( 'tpetra_tests',   default=False,   description='Configure Tpetra tests'          )
-
     conflicts( '+expy', when='-platomain')
     conflicts( '+iso',  when='-stk')
     conflicts( '+prune',  when='-stk')
@@ -56,7 +56,7 @@ class Platoengine(CMakePackage):
     depends_on( 'trilinos+exodus+chaco+intrepid+shards gotype=int')
     depends_on( 'trilinos@13.0.1 cxxstd=14',                                         when='~rol~prune')
     depends_on( 'mpi',            type=('build','link','run'))
-    depends_on( 'cmake@3.0.0:',   type='build')
+    depends_on( 'cmake@3.19.5:',   type='build')
     depends_on( 'trilinos@rol_update+rol cxxstd=14',                           when='+rol')
     depends_on( 'trilinos+zlib+pnetcdf+boost \
                                        +stk',           when='+stk')
@@ -64,6 +64,8 @@ class Platoengine(CMakePackage):
                                        +stk cxxstd=14',           when='+prune')
     depends_on( 'trilinos+zlib+pnetcdf+boost+intrepid2 \
                              +minitensor+pamgen',             when='+geometry')
+    depends_on( 'trilinos+zlib+pnetcdf+boost \
+                                       +stk~gtest+hdf5+ifpack+amesos+belos+muelu+tpetra~mumps',           when='+stk')
     depends_on( 'googletest',                                 when='+unit_testing' )
     depends_on( 'python@2.6:2.999', type=('build', 'link', 'run'), when='+expy'    )
     depends_on( 'nlopt',                                      when='+expy'         )
@@ -72,7 +74,11 @@ class Platoengine(CMakePackage):
     depends_on( 'trilinos+cuda+wrapper',                              when='+cuda')
 
     depends_on( 'esp', when='+esp')
+    depends_on( 'moris@plato', when='+xtk')
     depends_on( 'hdf5+cxx~debug+fortran+hl+mpi+pic+shared~szip~threadsafe',when='+stk')
+    depends_on( 'arpack-ng',when='+xtk')
+    depends_on( 'superlu',when='+xtk')
+    depends_on( 'superlu-dist',when='+xtk')
     def cmake_args(self):
         spec = self.spec
 
@@ -89,9 +95,7 @@ class Platoengine(CMakePackage):
           options.extend([ '-DIPOPT_ENABLED=ON' ])
           ipopt_dir = spec['ipopt'].prefix
           options.extend([ '-DIPOPT_INSTALL_DIR:FILEPATH={0}'.format(ipopt_dir) ])
-
-        if '+platoproxy' in spec:
-
+        
         if '+platoproxy' in spec:
           options.extend([ '-DPLATOPROXY=ON' ])
 
@@ -125,6 +129,10 @@ class Platoengine(CMakePackage):
 
         if '+stk' in spec:
           options.extend([ '-DSTK_ENABLED=ON' ])
+        if '+xtk' in spec:
+          options.extend([ '-DXTK_ENABLED=ON' ])
+        if '~xtk' in spec:
+          options.extend([ '-DXTK_ENABLED=OFF' ])
 
         if '+esp' in spec:
           options.extend([ '-DESP_ENABLED=ON' ])
@@ -158,5 +166,6 @@ class Platoengine(CMakePackage):
         if '+expy' in self.spec:
           run_env.prepend_path('PYTHONPATH', self.prefix.lib)
           run_env.prepend_path('PYTHONPATH', self.prefix.etc)
+          
 
         run_env.prepend_path('PATH', self.prefix.etc)
