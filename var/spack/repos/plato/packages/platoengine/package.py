@@ -55,16 +55,15 @@ class Platoengine(CMakePackage):
 
     depends_on( 'ipopt@3.12.8', when='+ipopt')
     depends_on( 'trilinos+exodus+chaco+intrepid+shards gotype=int')
-    depends_on( 'trilinos@13.0.1 cxxstd=14',                                         when='~rol~prune')
+    depends_on( 'trilinos@13.2.0 cxxstd=14',                                         when='~rol~prune')
     depends_on( 'mpi',            type=('build','link','run'))
     depends_on( 'cmake@3.0.0:',   type='build')
     depends_on( 'trilinos@rol_update+rol cxxstd=14',                           when='+rol')
-    depends_on( 'trilinos+zlib+pnetcdf+boost \
+    depends_on( 'trilinos+boost \
                                        +stk',           when='+stk')
-    depends_on( 'trilinos@rol_update+percept+zoltan+zlib+pnetcdf+boost \
+    depends_on( 'trilinos@rol_update+zoltan+boost \
                                        +stk cxxstd=14',           when='+prune')
-    depends_on( 'trilinos+zlib+pnetcdf+boost+intrepid2 \
-                             +minitensor+pamgen',             when='+geometry')
+    depends_on( 'trilinos+boost+intrepid2+minitensor',             when='+geometry')
     depends_on( 'googletest',                                 when='+unit_testing' )
     depends_on( 'python@2.6:2.999', type=('build', 'link', 'run'), when='+expy'    )
     depends_on( 'nlopt',                                      when='+expy'         )
