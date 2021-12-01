@@ -34,7 +34,6 @@ class Platoanalyze(CMakePackage):
 
     maintainers = ['rviertel', 'jrobbin']
 
-    version('release', branch='release', submodules=True)
     version('develop', branch='develop', submodules=True, preferred=True)
 
     variant( 'amgx',       default=True,     description='Compile with AMGX'            )
@@ -62,6 +61,7 @@ class Platoanalyze(CMakePackage):
     depends_on('trilinos~tpetra~amesos2~ifpack2~belos~muelu~zoltan2',             when='~tpetra')
     depends_on('trilinos+pamgen',                                                 when='+geometry')
     depends_on('platoengine+geometry',                                            when='+geometry')
+    depends_on('platoengine~dakota',                                              when='+cuda')
     depends_on('cmake@3.0.0:', type='build')
     depends_on('python @2.6:2.999',                          when='+python')
     depends_on('platoengine+expy',                           when='+python')
@@ -72,6 +72,7 @@ class Platoanalyze(CMakePackage):
     depends_on('omega-h@9.34.1:',                           type=('build', 'link', 'run'))
     depends_on('esp',                                       when='+esp')
     depends_on('platoengine+esp',                                       when='+esp')
+    depends_on('cuda@10.0:10.2.999', when='+cuda')
 
     conflicts('+geometry', when='~mpmd')
     conflicts('+meshmap',  when='~mpmd')
