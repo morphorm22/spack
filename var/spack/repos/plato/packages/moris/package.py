@@ -35,7 +35,7 @@ class Moris(CMakePackage):
     depends_on('superlu')
     depends_on('superlu-dist')
     depends_on('hdf5+cxx~debug+fortran+hl+mpi+pic+shared~szip~threadsafe')
-    depends_on('trilinos@master~adios2~alloptpkgs+amesos~amesos2+anasazi+aztec+belos+boost~cgns+chaco~complex~cuda~cuda_rdc~debug~dtk+epetra+epetraext+exodus+explicit_template_instantiation~float+fortran+glm~gtest+hdf5~hwloc+hypre+ifpack+ifpack2+intrepid~intrepid2~ipo~isorropia+kokkos+kokkoskernels+matio~mesquite+metis~minitensor+ml+mpi+muelu~mumps+netcdf~nox~openmp~pamgen~percept~phalanx~piro+pnetcdf~python~rol~rythmos+sacado+shards+shared~shylu+stk~stratimikos~strumpack+suite-sparse~superlu~superlu-dist~teko~tempus+teuchos+tpetra~wrapper~x11~xsdkflags+zlib~zoltan~zoltan2 build_type=RelWithDebInfo cuda_arch=none cxxstd=14 gotype=int')
+    depends_on('trilinos~adios2~alloptpkgs+amesos~amesos2+anasazi+aztec+belos+boost~cgns+chaco~complex~cuda~cuda_rdc~debug~dtk+epetra+epetraext+exodus+explicit_template_instantiation~float+fortran+glm~gtest+hdf5~hwloc+hypre+ifpack+ifpack2+intrepid~intrepid2~ipo~isorropia+kokkos+kokkoskernels+matio~mesquite+metis~minitensor+ml+mpi+muelu~mumps+netcdf~nox~openmp~pamgen~percept~phalanx~piro+pnetcdf~python~rol~rythmos+sacado+shards+shared~shylu+stk~stratimikos~strumpack+suite-sparse~superlu~superlu-dist~teko~tempus+teuchos+tpetra~wrapper~x11~xsdkflags+zlib+zoltan+zoltan2 build_type=RelWithDebInfo cuda_arch=none cxxstd=14 gotype=int')
     depends_on('boost')
     depends_on('petsc')
     depends_on('armadillo')

@@ -32,7 +32,7 @@ class Platoengine(CMakePackage):
     variant( 'albany_tests',   default=False,   description='Configure Albany tests'          )
     variant( 'analyze_tests',  default=False,   description='Configure Analyze tests'         )
     variant( 'cuda',           default=False,   description='Compile with cuda'               )
-    variant( 'esp',            default=False,    description='Turn on esp'                     )
+    variant( 'esp',            default=False,    description='Turn on esp'                    )
     variant( 'expy',           default=False,   description='Compile exodus/python API'       )
     variant( 'geometry',       default=False,   description='Turn on Plato Geometry'          )
     variant( 'iso',            default=False,   description='Turn on iso extraction'          )
@@ -40,7 +40,7 @@ class Platoengine(CMakePackage):
     variant( 'prune',          default=False,   description='Turn on use of prune and refine' )
     variant( 'rol',            default=False,   description='Turn on use of rol'              )
     variant( 'stk',            default=False,   description='Turn on use of stk'              )
-    variant( 'xtk',            default=False,   description='Turn on use of xtk'          )
+    variant( 'xtk',            default=False,   description='Turn on use of xtk'              )
     variant( 'tpetra_tests',   default=False,   description='Configure Tpetra tests'          )
     conflicts( '+expy', when='-platomain')
     conflicts( '+iso',  when='-stk')
@@ -65,7 +65,8 @@ class Platoengine(CMakePackage):
     depends_on( 'trilinos+zlib+pnetcdf+boost+intrepid2 \
                              +minitensor+pamgen',             when='+geometry')
     depends_on( 'trilinos+zlib+pnetcdf+boost \
-                                       +stk~gtest+hdf5+ifpack+amesos+belos+muelu+tpetra~mumps',           when='+stk')
+                                       +stk~gtest+hdf5+ifpack+amesos+belos+muelu+tpetra~mumps+zoltan2+zoltan',           when='+stk')
+
     depends_on( 'googletest',                                 when='+unit_testing' )
     depends_on( 'python@2.6:2.999', type=('build', 'link', 'run'), when='+expy'    )
     depends_on( 'nlopt',                                      when='+expy'         )
@@ -129,6 +130,7 @@ class Platoengine(CMakePackage):
 
         if '+stk' in spec:
           options.extend([ '-DSTK_ENABLED=ON' ])
+
         if '+xtk' in spec:
           options.extend([ '-DXTK_ENABLED=ON' ])
         if '~xtk' in spec:
