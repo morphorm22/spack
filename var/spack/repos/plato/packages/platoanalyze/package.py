@@ -34,13 +34,15 @@ class Platoanalyze(CMakePackage):
 
     maintainers = ['rviertel', 'jrobbin']
 
-    version('release', branch='release', submodules=True)
     version('develop', branch='develop', submodules=True, preferred=True)
 
     variant( 'amgx',       default=True,     description='Compile with AMGX'            )
     variant( 'cuda',       default=True,     description='Compile with cuda'            )
     variant( 'meshmap',    default=True,     description='Compile with MeshMap'         )
     variant( 'mpmd',       default=True,     description='Compile with mpmd'            )
+    variant( 'physics',    default=True,     description='Compile with all Physics'      )
+    variant( 'helmholtz',  default=True,     description='Compile with Helmholtz filter' )
+    variant( 'unittests',  default=True,     description='Compile with unit tests' )
     variant( 'esp',        default=False,     description='Compile with ESP'             )
     variant( 'geometry',   default=False,    description='Compile with MLS geometry'    )
     variant( 'openmp',     default=False,    description='Compile with openmp'          )
@@ -59,6 +61,7 @@ class Platoanalyze(CMakePackage):
     depends_on('trilinos~tpetra~amesos2~ifpack2~belos~muelu~zoltan2',             when='~tpetra')
     depends_on('trilinos+pamgen',                                                 when='+geometry')
     depends_on('platoengine+geometry',                                            when='+geometry')
+    depends_on('platoengine~dakota',                                              when='+cuda')
     depends_on('cmake@3.0.0:', type='build')
     depends_on('python @2.6:2.999',                          when='+python')
     depends_on('platoengine+expy',                           when='+python')
@@ -69,11 +72,13 @@ class Platoanalyze(CMakePackage):
     depends_on('omega-h@9.34.1:',                           type=('build', 'link', 'run'))
     depends_on('esp',                                       when='+esp')
     depends_on('platoengine+esp',                                       when='+esp')
+    depends_on('cuda@10.0:10.2.999', when='+cuda')
 
     conflicts('+geometry', when='~mpmd')
     conflicts('+meshmap',  when='~mpmd')
     conflicts('+amgx',     when='~cuda')
     conflicts('+openmp',     when='+cuda')
+    conflicts('+unittests', when='~physics')
     conflicts('platoengine+rol',     when='~trilinos_rol_branch')
     conflicts('platoengine+prune',   when='~trilinos_rol_branch')
 
@@ -124,8 +129,25 @@ class Platoanalyze(CMakePackage):
 
         if '+rocket' in spec:
           options.extend([ '-DPLATOANALYZE_ENABLE_ROCKET=ON' ])
+          
         if '+trilinos_rol_branch' in spec:
           options.extend([ '-DTRILINOS_ROL_BRANCH=ON' ])
+
+        if '~physics' in spec:
+          options.extend([ '-DELLIPTIC=OFF' ])
+          options.extend([ '-DPARABOLIC=OFF' ])
+          options.extend([ '-DHYPERBOLIC=OFF' ])
+          options.extend([ '-DSTABILIZED=OFF' ])
+          options.extend([ '-DPLASTICITY=OFF' ])
+
+        if '+helmholtz' in spec:
+          options.extend([ '-DHELMHOLTZ=ON' ])
+
+        if '~helmholtz' in spec:
+          options.extend([ '-DHELMHOLTZ=OFF' ])
+
+        if '~unittests' in spec:
+          options.extend([ '-DPLATOANALYZE_UNIT_TEST=OFF' ])
 
         return options
 

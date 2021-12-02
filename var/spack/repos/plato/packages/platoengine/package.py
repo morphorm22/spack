@@ -15,14 +15,7 @@ class Platoengine(CMakePackage):
 
     maintainers = ['rviertel', 'jrobbin']
 
-    version('release', branch='release')
     version('develop', branch='develop', preferred=True)
-    version('0.6.0', sha256='893f9d6f05ef1d7ca563fcc585e92b2153eb6b9f203fb4cadc73a00da974ac20')
-    version('0.5.0', sha256='dc394819026b173749f78ba3a66d0c32d4ec733b68a4d004a4acb70f7668eca2')
-    version('0.4.0', sha256='642404480ea2e9b7a2bffcfcc2d526dea2f1b136d786e088a5d91a4ff21b8ef2')
-    version('0.3.0', sha256='dfc362e9bb6aaa263ae21cb090bd5f816959e54277bc2488cd4f2830217de5a4')
-    version('0.2.0', sha256='16619c21000f3fa5b0cc1b54b06ee60a691dd7cbce2c8c7baeb0881ab76d4d09')
-    version('0.1.0', sha256='9bc3e2a89deeaf1c474c3109952d95c63cc027a1aafe272b97ee75bd876ac4b0')
 
     variant( 'platomain',      default=True,    description='Compile PlatoMain'               )
     variant( 'platostatics',   default=True,    description='Compile PlatoStatics'            )
@@ -42,6 +35,9 @@ class Platoengine(CMakePackage):
     variant( 'stk',            default=False,   description='Turn on use of stk'              )
     variant( 'xtk',            default=False,   description='Turn on use of xtk'              )
     variant( 'tpetra_tests',   default=False,   description='Configure Tpetra tests'          )
+    variant( 'dakota',         default=False,   description='Compile with Dakota'             )
+    variant( 'services',       default=False,   description='Compile with services'           )
+
     conflicts( '+expy', when='-platomain')
     conflicts( '+iso',  when='-stk')
     conflicts( '+prune',  when='-stk')
@@ -51,10 +47,13 @@ class Platoengine(CMakePackage):
     conflicts( '@0.4.0', when='+prune')
     conflicts( '@0.5.0', when='+prune')
     conflicts( '@0.6.0', when='+prune')
+    conflicts( '+prune', when='+dakota')
+    conflicts( '+rol',   when='+dakota')
+    conflicts( '+expy', when='+dakota')
 
     depends_on( 'ipopt@3.12.8', when='+ipopt')
     depends_on( 'trilinos+exodus+chaco+intrepid+shards gotype=int')
-    depends_on( 'trilinos@13.0.1 cxxstd=14',                                         when='~rol~prune')
+    depends_on( 'trilinos@13.0.1 cxxstd=11',                                         when='+dakota')
     depends_on( 'mpi',            type=('build','link','run'))
     depends_on( 'cmake@3.19.5:',   type='build')
     depends_on( 'trilinos@rol_update+rol cxxstd=14',                           when='+rol')
@@ -80,6 +79,10 @@ class Platoengine(CMakePackage):
     depends_on( 'arpack-ng',when='+xtk')
     depends_on( 'superlu',when='+xtk')
     depends_on( 'superlu-dist',when='+xtk')
+    
+    depends_on( 'dakota', when='+dakota')
+    depends_on( 'numdiff', when='+analyze_tests+esp+dakota')
+
     def cmake_args(self):
         spec = self.spec
 
@@ -159,6 +162,18 @@ class Platoengine(CMakePackage):
 
         if '+tpetra_tests' in spec:
           options.extend([ '-DPLATO_TPETRA=ON' ])
+
+        if '+dakota' in spec:
+          options.extend([ '-DDAKOTADRIVER=ON' ])
+          boost_dir = spec['boost'].prefix
+          options.extend([ '-DBOOST_ROOT:FILEPATH={0}'.format(boost_dir) ])
+          options.extend([ '-DCMAKE_CXX_COMPILER_VERSION={0}'.format(spec.compiler.version)])
+
+        if '+services' in spec:
+          options.extend([ '-DENABLE_PLATO_SERVICES=ON' ])
+        if '+analyze_tests+esp+dakota' in spec:
+          numdiff_dir = spec['numdiff'].prefix
+          options.extend([ '-DNUMDIFF_PATH:FILEPATH={0}'.format(numdiff_dir) ])
 
         return options
 
