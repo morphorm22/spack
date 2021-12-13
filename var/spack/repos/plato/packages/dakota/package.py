@@ -68,7 +68,8 @@ class Dakota(CMakePackage):
         if '+use_spack_trilinos' in spec:
             args.extend([
                 '-DTrilinos_DIR:PATH=%s' % join_path(spec['trilinos'].prefix),
-                '-DDAKOTA_NO_FIND_TRILINOS:BOOL=FALSE'
+                '-DDAKOTA_NO_FIND_TRILINOS:BOOL=FALSE',
+                '-DCMAKE_CXX_STANDARD=14'
             ])
         else:
             args.extend([
