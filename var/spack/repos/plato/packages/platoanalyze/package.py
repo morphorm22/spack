@@ -76,8 +76,6 @@ class Platoanalyze(CMakePackage):
     conflicts('+amgx',     when='~cuda')
     conflicts('+openmp',     when='+cuda')
     conflicts('+unittests', when='~physics')
-    conflicts('platoengine+rol',     when='~trilinos_rol_branch')
-    conflicts('platoengine+prune',   when='~trilinos_rol_branch')
 
     def cmake_args(self):
         spec = self.spec
@@ -127,9 +125,6 @@ class Platoanalyze(CMakePackage):
         if '+rocket' in spec:
           options.extend([ '-DPLATOANALYZE_ENABLE_ROCKET=ON' ])
           
-        if '+trilinos_rol_branch' in spec:
-          options.extend([ '-DTRILINOS_ROL_BRANCH=ON' ])
-
         if '~physics' in spec:
           options.extend([ '-DELLIPTIC=OFF' ])
           options.extend([ '-DPARABOLIC=OFF' ])
