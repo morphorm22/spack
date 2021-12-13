@@ -49,12 +49,9 @@ class Platoanalyze(CMakePackage):
     variant( 'python',     default=False,     description='Compile with python'          )
     variant( 'rocket',     default=False,    description='Builds ROCKET and ROCKET_MPMD')
     variant( 'tpetra',     default=False,    description='Compile with Tpetra'          )
-    variant( 'trilinos_rol_branch',     default=False,    description='Use ROL branch of Trilinos when building')
 
     depends_on('platoengine+analyze_tests',                                       when='+mpmd')
-    depends_on('trilinos+kokkos+kokkoskernels gotype=int')
-    depends_on('trilinos@rol_update',                                            when='+trilinos_rol_branch')
-    depends_on('trilinos@13.0.1',                                                when='~trilinos_rol_branch')
+    depends_on('trilinos@rol_update+kokkos+kokkoskernels gotype=int')
     depends_on('trilinos+cuda+wrapper', when='+cuda')
     depends_on('trilinos+openmp', when='+openmp')
     depends_on('trilinos+tpetra+belos+ifpack2+amesos2+superlu+muelu+zoltan2',     when='+tpetra')
