@@ -43,6 +43,7 @@ class Platoanalyze(CMakePackage):
     variant( 'physics',    default=True,     description='Compile with all Physics'      )
     variant( 'helmholtz',  default=True,     description='Compile with Helmholtz filter' )
     variant( 'unittests',  default=True,     description='Compile with unit tests' )
+    variant( 'enginemesh', default=False,    description='Compile with enginemesh as default' )
     variant( 'esp',        default=False,     description='Compile with ESP'             )
     variant( 'geometry',   default=False,    description='Compile with MLS geometry'    )
     variant( 'openmp',     default=False,    description='Compile with openmp'          )
@@ -71,6 +72,7 @@ class Platoanalyze(CMakePackage):
     depends_on('platoengine+esp',                                       when='+esp')
     depends_on('cuda@10.0:10.2.999', when='+cuda')
 
+    conflicts('+enginemesh', when='~mpmd')
     conflicts('+geometry', when='~mpmd')
     conflicts('+meshmap',  when='~mpmd')
     conflicts('+amgx',     when='~cuda')
@@ -99,6 +101,9 @@ class Platoanalyze(CMakePackage):
 
         if '+python' in spec:
           options.extend([ '-DPLATOANALYZE_ENABLE_PYTHON=ON' ])
+
+        if '+enginemesh' in spec:
+          options.extend([ '-DPLATOANALYZE_ENABLE_ENGINEMESH=ON' ])
 
         if '+geometry' in spec:
           options.extend([ '-DPLATOANALYZE_ENABLE_GEOMETRY=ON' ])
