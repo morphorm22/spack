@@ -71,6 +71,7 @@ class Platoanalyze(CMakePackage):
     depends_on('esp',                                       when='+esp')
     depends_on('platoengine+esp',                                       when='+esp')
     depends_on('cuda@10.0:10.2.999', when='+cuda')
+    depends_on('omega-h+cuda', when='+cuda')
 
     conflicts('+enginemesh', when='~mpmd')
     conflicts('+geometry', when='~mpmd')
