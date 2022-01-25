@@ -22,6 +22,7 @@ class Esp(Package):
 
       if (spec.satisfies('@120Lin')):
         copy_tree('OpenCASCADE-7.4.1/lib', prefix.lib)
+        copy_tree('EngSketchPad/pyESP', prefix.pyESP)
       else:
         copy_tree('OpenCASCADE-7.3.1/lib', prefix.lib)
 
@@ -36,7 +37,11 @@ class Esp(Package):
 
     def setup_environment(self, spack_env, run_env):
 
+      run_env.prepend_path('PYTHONPATH', self.prefix.pyESP)
       run_env.prepend_path('PYTHONPATH', self.prefix.lib)
       run_env.set('ESP_START', 'google-chrome '+self.prefix.ESP+'/ESP-localhost7681.html')
       run_env.set('UDUNITS2_XML_PATH', self.prefix+'/src/CAPS/udunits/udunits2.xml')
       run_env.set('ESP_ROOT', self.prefix)
+      run_env.set('ESP_ARCH', 'LINUX64')
+      run_env.set('CASREV', '7.4')
+
