@@ -35,6 +35,7 @@ class Platoanalyze(CMakePackage):
     maintainers = ['rviertel', 'jrobbin']
 
     version('develop', branch='develop', submodules=True, preferred=True)
+    version('release-v0.1.0', branch='release-v0.1.0', submodules=True)
 
     variant( 'amgx',       default=True,     description='Compile with AMGX'            )
     variant( 'cuda',       default=True,     description='Compile with cuda'            )
