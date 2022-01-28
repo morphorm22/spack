@@ -15,8 +15,8 @@ class Platoengine(CMakePackage):
 
     maintainers = ['rviertel', 'jrobbin']
 
-    version('develop', branch='develop', preferred=True)
-    version('release-v0.1.0', branch='release-v0.1.0')
+    version('develop', branch='develop')
+    version('release-v0.1.0', branch='release-v0.1.0', preferred=True)
 
     variant( 'platomain',      default=True,    description='Compile PlatoMain'               )
     variant( 'platostatics',   default=True,    description='Compile PlatoStatics'            )
