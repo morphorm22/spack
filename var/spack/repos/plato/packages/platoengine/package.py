@@ -59,7 +59,10 @@ class Platoengine(CMakePackage):
     depends_on( 'trilinos+percept+zoltan+zlib+pnetcdf+boost+stk',  when='+prune')
     depends_on( 'trilinos+zlib+pnetcdf+boost+intrepid2+minitensor+pamgen', when='+geometry')
     depends_on( 'googletest',                                      when='+unit_testing' )
-    depends_on( 'python@2.6:2.999', type=('build', 'link', 'run'), when='+expy'    )
+    depends_on( 'python@3.8:3.999', type=('build', 'link', 'run'), when='+expy'    )
+    depends_on( 'python@2.6:2.999', type=('build', 'link', 'run'), when='+esp@117Lin' )
+    depends_on( 'python@3.8:3.999', type=('build', 'link', 'run'), when='+esp@120Lin' )
+    depends_on( 'python@3.8:3.999', type=('build', 'link', 'run'), when='+esp@beta' )
     depends_on( 'nlopt',                                      when='+expy'         )
     # py-setuptools later than v44.1.0 require python 3.x
     depends_on( 'py-numpy@1.16.5 ^py-setuptools@44.1.0',      when='+expy'         )
