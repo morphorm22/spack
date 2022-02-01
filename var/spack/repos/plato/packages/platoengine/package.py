@@ -47,7 +47,6 @@ class Platoengine(CMakePackage):
     conflicts( '@0.5.0', when='+prune')
     conflicts( '@0.6.0', when='+prune')
     conflicts( '+expy', when='+dakota')
-    conflicts( '+expy', when='+esp@120Lin')
 
     depends_on( 'ipopt@3.12.8', when='+ipopt')
     depends_on( 'trilinos@rol_update+exodus+chaco+intrepid+shards gotype=int cxxstd=14')
@@ -59,9 +58,9 @@ class Platoengine(CMakePackage):
     depends_on( 'trilinos+percept+zoltan+zlib+pnetcdf+boost+stk',  when='+prune')
     depends_on( 'trilinos+zlib+pnetcdf+boost+intrepid2+minitensor+pamgen', when='+geometry')
     depends_on( 'googletest',                                      when='+unit_testing' )
-    depends_on( 'python@2.6:2.999', type=('build', 'link', 'run'), when='+expy'    )
+    depends_on( 'python@3.8:3.999', type=('build', 'link', 'run'), when='+expy'    )
     depends_on( 'python@2.6:2.999', type=('build', 'link', 'run'), when='+esp@117Lin' )
-    depends_on( 'python@3.6:3.999', type=('build', 'link', 'run'), when='+esp@120Lin' )
+    depends_on( 'python@3.8:3.999', type=('build', 'link', 'run'), when='+esp@120Lin' )
     depends_on( 'nlopt',                                      when='+expy'         )
     # py-setuptools later than v44.1.0 require python 3.x
     depends_on( 'py-numpy@1.16.5 ^py-setuptools@44.1.0',      when='+expy'         )

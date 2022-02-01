@@ -61,7 +61,7 @@ class Platoanalyze(CMakePackage):
     depends_on('platoengine+geometry',                                            when='+geometry')
     depends_on('platoengine~dakota',                                              when='+cuda')
     depends_on('cmake@3.0.0:', type='build')
-    depends_on('python @2.6:2.999',                          when='+python')
+    depends_on('python @3.8:3.999',                          when='+python')
     depends_on('platoengine+expy',                           when='+python')
     depends_on('netlib-lapack')
 
@@ -69,13 +69,12 @@ class Platoanalyze(CMakePackage):
     depends_on('amgx',                                      when='+amgx')
     depends_on('omega-h@9.34.1:',                           type=('build', 'link', 'run'))
     depends_on('esp',                                       when='+esp')
-    depends_on('python @3.6:3.999',                          when='+esp@120Lin')
+    depends_on('python @3.8:3.999',                          when='+esp@120Lin')
     depends_on('python @2.6:2.999',                          when='+esp@117Lin')
     depends_on('platoengine+esp',                                       when='+esp')
     depends_on('cuda@10.0:10.2.999', when='+cuda')
     depends_on('omega-h+cuda', when='+cuda')
 
-    conflicts('+python', when='+esp@120Lin')
     conflicts('+enginemesh', when='~mpmd')
     conflicts('+geometry', when='~mpmd')
     conflicts('+meshmap',  when='~mpmd')
