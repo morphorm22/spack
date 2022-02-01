@@ -69,6 +69,7 @@ class Platoanalyze(CMakePackage):
     depends_on('amgx',                                      when='+amgx')
     depends_on('omega-h@9.34.1:',                           type=('build', 'link', 'run'))
     depends_on('esp',                                       when='+esp')
+    depends_on('python @3.8:3.999',                          when='+esp@beta')
     depends_on('python @3.8:3.999',                          when='+esp@120Lin')
     depends_on('python @2.6:2.999',                          when='+esp@117Lin')
     depends_on('platoengine+esp',                                       when='+esp')
