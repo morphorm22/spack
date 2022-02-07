@@ -9,7 +9,7 @@ from spack import *
 class Rrdtool(AutotoolsPackage):
     """RA tool for data logging and analysis."""
 
-    homepage = "http://oss.oetiker.ch/rrdtool"
+    homepage = "https://oss.oetiker.ch/rrdtool"
     url      = "http://oss.oetiker.ch/rrdtool/pub/rrdtool-1.7.0.tar.gz"
 
     version('1.7.2', sha256='a199faeb7eff7cafc46fac253e682d833d08932f3db93a550a4a5af180ca58db')
@@ -22,5 +22,7 @@ class Rrdtool(AutotoolsPackage):
     depends_on('perl-extutils-makemaker')
 
     def configure_args(self):
-        args = ['LDFLAGS=-lintl']
+        args = ['LDFLAGS=-lintl',
+                "--with-systemdsystemunitdir=" +
+                self.spec['rrdtool'].prefix.lib.systemd.system]
         return args
