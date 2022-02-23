@@ -44,7 +44,7 @@ class Platoanalyze(CMakePackage):
     variant( 'physics',    default=True,     description='Compile with all Physics'      )
     variant( 'helmholtz',  default=True,     description='Compile with Helmholtz filter' )
     variant( 'unittests',  default=True,     description='Compile with unit tests' )
-    variant( 'enginemesh', default=False,    description='Compile with enginemesh as default' )
+    variant( 'enginemesh', default=True,     description='Compile with enginemesh as default' )
     variant( 'esp',        default=False,     description='Compile with ESP'             )
     variant( 'geometry',   default=False,    description='Compile with MLS geometry'    )
     variant( 'openmp',     default=False,    description='Compile with openmp'          )
