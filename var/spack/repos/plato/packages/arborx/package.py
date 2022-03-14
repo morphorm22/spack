@@ -26,13 +26,6 @@ class Arborx(CMakePackage):
     depends_on('cuda', when='+cuda')
     depends_on('mpi', when='+mpi')
 
-    # ArborX relies on Kokkos to provide devices, thus having one-to-one match
-    # The only way to disable those devices is to make sure Kokkos does not
-    # provide them
-    depends_on('kokkos@2.7.00:+cuda+enable_lambda cxxstd=c++14', when='+cuda')
-    depends_on('kokkos@2.7.00:+openmp cxxstd=c++14', when='+openmp')
-    depends_on('kokkos@2.7.00:+serial cxxstd=c++14', when='+serial')
-
     patch('header_only.patch')
 
     def cmake_args(self):
