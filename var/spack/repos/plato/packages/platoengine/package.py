@@ -37,6 +37,7 @@ class Platoengine(CMakePackage):
     variant( 'tpetra_tests',   default=False,   description='Configure Tpetra tests'          )
     variant( 'dakota',         default=False,   description='Compile with Dakota'             )
     variant( 'services',       default=False,   description='Compile with services'           )
+    variant( 'sierra_tests',   default=False,   description='Enable sierra testing'           )
 
     conflicts( '+expy', when='-platomain')
     conflicts( '+iso',  when='-stk')
@@ -159,6 +160,9 @@ class Platoengine(CMakePackage):
         if '+analyze_tests+esp+dakota' in spec:
           numdiff_dir = spec['numdiff'].prefix
           options.extend([ '-DNUMDIFF_PATH:FILEPATH={0}'.format(numdiff_dir) ])
+
+        if '+sierra_tests' in spec:
+          options.extend([ '-DSIERRA_TESTS_ENABLED=ON' ])
 
         return options
 
