@@ -115,7 +115,7 @@ class Trilinos(CMakePackage, CudaPackage):
             description='Compile with METIS and ParMETIS')
     variant('mpi',          default=True,
             description='Compile with MPI parallelism')
-    variant('mumps',        default=True,
+    variant('mumps',        default=False,
             description='Compile with support for MUMPS solvers')
     variant('netcdf',       default=True,
             description='Compile with netcdf')
