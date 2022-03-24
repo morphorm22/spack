@@ -49,6 +49,7 @@ class Platoengine(CMakePackage):
     conflicts( '@0.5.0', when='+prune')
     conflicts( '@0.6.0', when='+prune')
     conflicts( '+expy', when='+dakota')
+    conflicts( '~services', when='+dakota')
 
     depends_on( 'ipopt', when='+ipopt')
     depends_on( 'trilinos@rol_update+exodus+chaco+intrepid+shards gotype=int cxxstd=14')
