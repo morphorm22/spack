@@ -70,7 +70,7 @@ class OmegaH(CMakePackage, CudaPackage):
         else:
             args.append('-DBUILD_SHARED_LIBS:BOOL=OFF')
         if '+mpi' in self.spec:
-            args.append('-DOmega_h_USE_MPI:BOOL=ON')
+            args.append('-DOmega_h_USE_MPI:BOOL=OFF')
             args.append('-DCMAKE_CXX_COMPILER:FILEPATH={0}'.format(
                 self.spec['mpi'].mpicxx))
         else:
