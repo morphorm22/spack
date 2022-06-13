@@ -7,8 +7,8 @@ class Esp(Package):
     homepage = "https://acdl.mit.edu/ESP/"
     url      = "https://acdl.mit.edu/ESP/PreBuilts/ESP121LinBeta.tgz"
 
-    version('beta', sha256='f2f933828583267a3cb4afe0059a899c3352eac5af2e1c88b3ae839c7d5e9aa1', url='https://acdl.mit.edu/ESP/PreBuilts/ESP121LinBeta.tgz', preferred=True)
-    version('120Lin', sha256='d16c7d90d4e1b46973113e47f474b59057df35f9bd55680c3430aface1571ba9', url='https://acdl.mit.edu/ESP/PreBuilts/ESP120Lin.tgz')
+    version('beta', sha256='f2f933828583267a3cb4afe0059a899c3352eac5af2e1c88b3ae839c7d5e9aa1', url='https://acdl.mit.edu/ESP/PreBuilts/ESP121LinBeta.tgz')
+    version('120Lin', sha256='d16c7d90d4e1b46973113e47f474b59057df35f9bd55680c3430aface1571ba9', url='https://acdl.mit.edu/ESP/PreBuilts/ESP120Lin.tgz',preferred=True)
     version('117Lin', sha256='bd6418ee9dafabdc17c58449c379535f4f148f1f67730074297c605b5e10e1a0', url='https://acdl.mit.edu/ESP/archive/ESP117Lin.tgz')
 
     depends_on( 'python@2.6:2.999', type=('run'), when='@117Lin' )
