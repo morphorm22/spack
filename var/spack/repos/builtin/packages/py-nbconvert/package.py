@@ -24,7 +24,7 @@ class PyNbconvert(PythonPackage):
     depends_on('python@3.6:', type=('build', 'run'), when='@6:')
     depends_on('py-setuptools', type=('build', 'run'), when='@5:')
     depends_on('py-pycurl', type='build', when='^python@:2.7.8')
-    depends_on('py-mistune@0.8.1:1.999', type=('build', 'run'))
+    depends_on('py-mistune@0.8.1:1', type=('build', 'run'))
     depends_on('py-jinja2', type=('build', 'run'))
     depends_on('py-jinja2@2.4:', type=('build', 'run'), when='@5:')
     depends_on('py-pygments', type=('build', 'run'))
@@ -41,7 +41,7 @@ class PyNbconvert(PythonPackage):
     depends_on('py-pandocfilters@1.4.1:', type=('build', 'run'), when='@5:')
     depends_on('py-testpath', type=('build', 'run'), when='@5:')
     depends_on('py-defusedxml', type=('build', 'run'), when='@5:')
-    depends_on('py-nbclient@0.5.0:0.5.999', type=('build', 'run'), when='@6:')
+    depends_on('py-nbclient@0.5.0:0.5', type=('build', 'run'), when='@6:')
     depends_on('py-tornado@4.0:', type=('build', 'run'), when='+serve')
 
     def patch(self):
@@ -49,3 +49,12 @@ class PyNbconvert(PythonPackage):
         # doesn't try to download it.
         install(join_path(self.package_dir, 'style.min.css'),
                 join_path('nbconvert', 'resources', 'style.min.css'))
+
+    def setup_run_environment(self, env):
+        env.prepend_path("JUPYTER_PATH", self.prefix.share.jupyter)
+
+    def setup_dependent_build_environment(self, env, dependent_spec):
+        env.prepend_path("JUPYTER_PATH", self.prefix.share.jupyter)
+
+    def setup_dependent_run_environment(self, env, dependent_spec):
+        env.prepend_path("JUPYTER_PATH", self.prefix.share.jupyter)

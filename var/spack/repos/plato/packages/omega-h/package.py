@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 
-class OmegaH(CMakePackage):
+class OmegaH(CMakePackage, CudaPackage):
     """Omega_h is a C++11 library providing data structures and algorithms
     for adaptive discretizations. Its specialty is anisotropic triangle and
     tetrahedral mesh adaptation. It runs efficiently on most modern HPC
@@ -12,13 +12,18 @@ class OmegaH(CMakePackage):
     """
 
     homepage = "https://github.com/sandialabs/omega_h"
-    url      = "https://github.com/sandialabs/omega_h/archive/v9.29.0.tar.gz"
+    url      = "https://github.com/sandialabs/omega_h/archive/v9.34.1.tar.gz"
     git      = "https://github.com/sandialabs/omega_h.git"
 
-    maintainers = ['ibaned']
-
+    maintainers = ['cwsmith']
+    tags = ['e4s']
     version('main', branch='main')
-    version('develop', branch='develop')
+    version('9.34.7', sha256='438f22dbad9a9260e55e8eb48a016d66e1191a623627494ab42792b57cabb0f5')
+    version('9.34.6', sha256='0fcdfedab6afb855ca982c429698eaa2c25e78909152b8bee508c80a54234aac')
+    version('9.34.5', sha256='1fa67122d2b6d2b3d0d05fa0c5ed1fa24234d072292b29cb334879ffb5adcc92')
+    version('9.34.4', sha256='bd70c5cd07a87aa713a309d95d9a6535231efd801124b5030520ba0ca366a6ff')
+    version('9.34.3', sha256='70db006c940924619cb156ab43f9fbea59695048ff90f49136c9aee37d303050')
+    version('9.34.2', sha256='3b3acd2d130746bdf7cc393d3bb06d75724c8480634d48f2293b971523ab09a0')
     version('9.34.1', sha256='3a812da3b8df3e0e5d78055e91ad23333761bcd9ed9b2c8c13ee1ba3d702e46c')
     version('9.32.5', sha256='963a203e9117024cd48d829d82b8543cd9133477fdc15386113b594fdc3246d8')
     version('9.29.0', sha256='b41964b018909ffe9cea91c23a0509b259bfbcf56874fcdf6bd9f6a179938014')
@@ -40,18 +45,14 @@ class OmegaH(CMakePackage):
     variant('optimize', default=True, description='Compile C++ with optimization')
     variant('symbols', default=True, description='Compile C++ with debug symbols')
     variant('warnings', default=False, description='Compile C++ with warnings')
-    variant('cuda', default=False, description='Compile C++ with cuda')
 
     depends_on('gmsh', when='+examples', type='build')
     depends_on('mpi', when='+mpi')
-    depends_on('trilinos +kokkos +teuchos', when='+trilinos')
-    depends_on('kokkos-nvcc-wrapper', when='+wrapper')
+    depends_on('trilinos +kokkos', when='+trilinos')
     depends_on('zlib', when='+zlib')
-    depends_on('cuda@:10.2', when='+cuda')
 
     # https://gcc.gnu.org/bugzilla/show_bug.cgi?id=86610
-    conflicts('%gcc@8:8.2.99', when='@:9.22.1')
-    conflicts('+trilinos', when='~mpi')
+    conflicts('%gcc@8:8.2', when='@:9.22.1')
 
     def _bob_options(self):
         cmake_var_prefix = 'Omega_h_CXX_'
@@ -63,30 +64,25 @@ class OmegaH(CMakePackage):
                 yield '-D' + cmake_var + ':BOOL=FALSE'
 
     def cmake_args(self):
-        args = []
+        args = ['-DUSE_XSDK_DEFAULTS:BOOL=OFF']
         if '+shared' in self.spec:
             args.append('-DBUILD_SHARED_LIBS:BOOL=ON')
         else:
             args.append('-DBUILD_SHARED_LIBS:BOOL=OFF')
         if '+mpi' in self.spec:
-            # only point to the mpi compiler for now.  turning on the flag below
-            # prompts omega-h to do a 'find_package(MPI)' which adds a MPI::MPI_CXX
-            # dependency to omega-h targets. This causes problems in PA.
-            # args.append('-DOmega_h_USE_MPI:BOOL=ON')
-            args.append('-DCMAKE_CXX_COMPILER:FILEPATH={0}'.format(self.spec['mpi'].mpicxx))
+            args.append('-DOmega_h_USE_MPI:BOOL=OFF')
+            args.append('-DCMAKE_CXX_COMPILER:FILEPATH={0}'.format(
+                self.spec['mpi'].mpicxx))
         else:
             args.append('-DOmega_h_USE_MPI:BOOL=OFF')
         if '+trilinos' in self.spec:
             args.append('-DOmega_h_USE_Kokkos:BOOL=ON')
             args.append('-DOmega_h_USE_SEACASExodus:BOOL=ON')
-            # if SEACASExodus is on, omega-h does a 'find_package(HDF5)' which fails
-            # because the hdf5 spack package doesn't create a *config.cmake file.  
-            # Finding hdf5 isn't necessary anyway when building with trilinos.
             args.append('-DOmega_h_USE_HDF5:BOOL=OFF')
-            args.append('-DKokkos_PREFIX:PATH={0}'.format(self.spec['trilinos'].prefix))
         if '+zlib' in self.spec:
             args.append('-DOmega_h_USE_ZLIB:BOOL=ON')
-            args.append('-DZLIB_ROOT:PATH={0}'.format(self.spec['zlib'].prefix))
+            args.append('-DZLIB_ROOT:PATH={0}'.format(
+                self.spec['zlib'].prefix))
         else:
             args.append('-DOmega_h_USE_ZLIB:BOOL=OFF')
         if '+examples' in self.spec:
@@ -97,6 +93,10 @@ class OmegaH(CMakePackage):
             args.append('-DOmega_h_THROW:BOOL=ON')
         else:
             args.append('-DOmega_h_THROW:BOOL=OFF')
+        if '+cuda' in self.spec:
+            args.append('-DCMAKE_CUDA_ARCHITECTURES={0}'.format(self.spec.variants['cuda_arch'].value[0]))
+
+
         # omega-h requires empty CMAKE_BUILD_TYPE
         args.append('-DCMAKE_BUILD_TYPE:STRING=')
         args += list(self._bob_options())
@@ -106,4 +106,29 @@ class OmegaH(CMakePackage):
         flags = list(flags)
         if name == 'cxxflags':
             flags.append(self.compiler.cxx11_flag)
+
+            if self.spec.satisfies('%cce'):
+                flags.append("-Wno-final-dtor-non-final-class")
+
         return (None, None, flags)
+
+    def test(self):
+        if self.spec.version < Version('9.34.1'):
+            print('Skipping tests since only relevant for versions > 9.34.1')
+            return
+
+        exe = join_path(self.prefix.bin, 'osh_box')
+        options = ['1', '1', '1', '2', '2', '2', 'box.osh']
+        description = 'testing mesh construction'
+        self.run_test(exe, options, purpose=description)
+
+        exe = join_path(self.prefix.bin, 'osh_scale')
+        options = ['box.osh', '100', 'box_100.osh']
+        expected = 'adapting took'
+        description = 'testing mesh adaptation'
+        self.run_test(exe, options, expected, purpose=description)
+
+        exe = join_path(self.prefix.bin, 'osh2vtk')
+        options = ['box_100.osh', 'box_100_vtk']
+        description = 'testing mesh to vtu conversion'
+        self.run_test(exe, options, purpose=description)
