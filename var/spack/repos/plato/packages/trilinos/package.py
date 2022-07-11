@@ -124,6 +124,7 @@ class Trilinos(CMakePackage, CudaPackage, ROCmPackage):
     variant('stk',          default=False, description='Compile with STK')
     variant('shards',       default=False, description='Compile with Shards')
     variant('shylu',        default=False, description='Compile with ShyLU')
+    variant('tacho',        default=False, description='Compile with Tacho')
     variant('stokhos',      default=False, description='Compile with Stokhos')
     variant('stratimikos',  default=False, description='Compile with Stratimikos')
     variant('teko',         default=False, description='Compile with Teko')
@@ -318,6 +319,7 @@ class Trilinos(CMakePackage, CudaPackage, ROCmPackage):
     depends_on('libx11', when='+x11')
     depends_on('matio', when='+exodus')
     depends_on('metis', when='+zoltan')
+    depends_on('metis', when='+tacho')
     depends_on('mpi', when='+mpi')
     depends_on('netcdf-c', when="+exodus")
     depends_on('parallel-netcdf', when='+exodus+mpi')
@@ -553,6 +555,12 @@ class Trilinos(CMakePackage, CudaPackage, ROCmPackage):
             options.extend([
                 define('Trilinos_EXTRA_REPOSITORIES', 'DataTransferKit'),
                 define_trilinos_enable('DataTransferKit', True),
+            ])
+
+        if '+tacho' in spec:
+            options.extend([
+                'Trilinos_ENABLE_ShyLU_NodeTacho:BOOL=ON',
+                'Tacho_ENABLE_INT_INT:BOOL=ON',
             ])
 
         if '+exodus' in spec:
