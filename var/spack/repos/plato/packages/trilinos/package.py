@@ -549,18 +549,14 @@ class Trilinos(CMakePackage, CudaPackage, ROCmPackage):
                                 'epetraextgraphreorderings'),
             define_from_variant('Amesos2_ENABLE_Basker', 'basker'),
             define_from_variant('Amesos2_ENABLE_LAPACK', 'amesos2'),
+            define_trilinos_enable('ShyLU_NodeTacho', 'tacho'),
+            define_from_variant('Tacho_ENABLE_INT_INT', 'tacho'),
         ])
 
         if '+dtk' in spec:
             options.extend([
                 define('Trilinos_EXTRA_REPOSITORIES', 'DataTransferKit'),
                 define_trilinos_enable('DataTransferKit', True),
-            ])
-
-        if '+tacho' in spec:
-            options.extend([
-                'Trilinos_ENABLE_ShyLU_NodeTacho:BOOL=ON',
-                'Tacho_ENABLE_INT_INT:BOOL=ON',
             ])
 
         if '+exodus' in spec:
