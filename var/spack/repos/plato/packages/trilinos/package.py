@@ -400,7 +400,7 @@ class Trilinos(CMakePackage, CudaPackage, ROCmPackage):
             return (None, None, flags)
         return (flags, None, None)
 
-    # patch('seacas_remove_zlib.patch', when='@rol_update') #added by plato, do we still need it?
+    patch('seacas_remove_zlib.patch') #added by plato
 
     def url_for_version(self, version):
         url = "https://github.com/trilinos/Trilinos/archive/trilinos-release-{0}.tar.gz"
