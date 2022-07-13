@@ -237,7 +237,6 @@ class Trilinos(CMakePackage, CudaPackage, ROCmPackage):
     conflicts('+tempus', when='~nox')
 
      # conflicts added by plato team
-    conflicts('+tpetra', when='@13.2.0') # bug with epetra + tpetra + gotype=int
     conflicts('+percept', when='~boost')
     conflicts('+percept', when='~stk')
     conflicts('+percept', when='~zoltan')
@@ -400,7 +399,7 @@ class Trilinos(CMakePackage, CudaPackage, ROCmPackage):
             return (None, None, flags)
         return (flags, None, None)
 
-    # patch('seacas_remove_zlib.patch', when='@rol_update') #added by plato, do we still need it?
+    patch('seacas_remove_zlib.patch') #added by plato, do we still need it?
 
     def url_for_version(self, version):
         url = "https://github.com/trilinos/Trilinos/archive/trilinos-release-{0}.tar.gz"
