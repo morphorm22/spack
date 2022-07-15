@@ -27,6 +27,7 @@ class Arborx(CMakePackage):
     depends_on('cuda', when='+cuda')
     depends_on('mpi', when='+mpi')
 
+    patch('v1.1-header_only.patch', when='@v1.1')
     patch('header_only.patch', when='@header_only')
 
     def cmake_args(self):
