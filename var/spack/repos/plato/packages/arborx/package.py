@@ -14,6 +14,7 @@ class Arborx(CMakePackage):
     git      = "https://github.com/arborx/arborx.git"
 
     version('master', branch='master')
+    version('v1.1', sha256='2b5f2d2d5cec57c52f470c2bf4f42621b40271f870b4f80cb57e52df1acd90ce')
     version('header_only', commit='3158660351d69456cc9310c7b325cff7859b90a8')
     version('0.8-beta2', sha256='e68733bc77fbb84313f3ff059f746fa79ab2ffe24a0a391126eefa47ec4fd2df')
 
@@ -26,7 +27,8 @@ class Arborx(CMakePackage):
     depends_on('cuda', when='+cuda')
     depends_on('mpi', when='+mpi')
 
-    patch('header_only.patch')
+    patch('v1.1-header_only.patch', when='@v1.1')
+    patch('header_only.patch', when='@header_only')
 
     def cmake_args(self):
         spec = self.spec

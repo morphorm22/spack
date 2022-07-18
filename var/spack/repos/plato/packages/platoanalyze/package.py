@@ -65,7 +65,7 @@ class Platoanalyze(CMakePackage, CudaPackage):
     depends_on('platoengine+expy',                           when='+python')
     depends_on('netlib-lapack')
 
-    depends_on('arborx~mpi~cuda~serial @header_only',       when='+meshmap')
+    depends_on('arborx~mpi~cuda~serial @v1.1',              when='+meshmap')
     depends_on('amgx',                                      when='+amgx')
     depends_on('omega-h@9.34.1:',                           type=('build', 'link', 'run'))
     depends_on('esp',                                       when='+esp')
