@@ -108,7 +108,7 @@ class Trilinos(CMakePackage, CudaPackage, ROCmPackage):
     variant('isorropia',    default=False, description='Compile with Isorropia')
     variant('gtest',        default=False, description='Build vendored Googletest')
     variant('kokkos',       default=True, description='Compile with Kokkos')
-    variant('kokkoskernels',default=False, description='Compile with KokkosKernels') # required by plato team
+    variant('kokkoskernels',default=True, description='Compile with KokkosKernels') # required by plato team
     variant('ml',           default=True, description='Compile with ML')
     variant('minitensor',   default=False, description='Compile with MiniTensor')
     variant('muelu',        default=True, description='Compile with Muelu')
