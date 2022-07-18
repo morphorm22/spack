@@ -55,7 +55,7 @@ class Platoanalyze(CMakePackage, CudaPackage):
     depends_on('trilinos@13.2+kokkos+kokkoskernels gotype=int')
     depends_on('trilinos+cuda+wrapper', when='+cuda')
     depends_on('trilinos+openmp', when='+openmp')
-    depends_on('trilinos+tpetra+belos+ifpack2+amesos2+superlu+muelu+zoltan2',     when='+tpetra')
+    depends_on('trilinos+tpetra+belos+ifpack2+amesos2+muelu+zoltan2',             when='+tpetra')
     depends_on('trilinos~tpetra~amesos2~ifpack2~belos~muelu~zoltan2',             when='~tpetra')
     depends_on('trilinos+pamgen',                                                 when='+geometry')
     depends_on('platoengine+geometry',                                            when='+geometry')
@@ -115,8 +115,6 @@ class Platoanalyze(CMakePackage, CudaPackage):
 
         if '+tpetra' in spec:
           options.extend([ '-DPLATOANALYZE_ENABLE_TPETRA=ON' ])
-          superlu_dir = spec['superlu'].prefix
-          options.extend([ '-DSuperLU_PREFIX:PATH={0}'.format(superlu_dir) ])
 
         if '+esp' in spec:
           options.extend([ '-DPLATOANALYZE_ENABLE_ESP=ON' ])

@@ -237,7 +237,6 @@ class Trilinos(CMakePackage, CudaPackage, ROCmPackage):
     conflicts('+tempus', when='~nox')
 
      # conflicts added by plato team
-    conflicts('+tpetra', when='@13.2.0') # bug with epetra + tpetra + gotype=int
     conflicts('+percept', when='~boost')
     conflicts('+percept', when='~stk')
     conflicts('+percept', when='~zoltan')
