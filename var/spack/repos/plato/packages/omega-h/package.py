@@ -17,6 +17,7 @@ class OmegaH(CMakePackage, CudaPackage):
 
     maintainers = ['cwsmith']
     tags = ['e4s']
+    version('develop', branch='develop')
     version('main', branch='main')
     version('9.34.7', sha256='438f22dbad9a9260e55e8eb48a016d66e1191a623627494ab42792b57cabb0f5')
     version('9.34.6', sha256='0fcdfedab6afb855ca982c429698eaa2c25e78909152b8bee508c80a54234aac')

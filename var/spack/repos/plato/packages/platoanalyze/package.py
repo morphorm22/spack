@@ -52,7 +52,7 @@ class Platoanalyze(CMakePackage, CudaPackage):
     variant( 'tpetra',     default=False,    description='Compile with Tpetra'          )
 
     depends_on('platoengine+analyze_tests',                                       when='+mpmd')
-    depends_on('trilinos@13.2+kokkos+kokkoskernels gotype=int')
+    depends_on('trilinos@13.4+kokkos+kokkoskernels gotype=int')
     depends_on('trilinos+cuda+wrapper', when='+cuda')
     depends_on('trilinos+openmp', when='+openmp')
     depends_on('trilinos+tpetra+belos+ifpack2+amesos2+muelu+zoltan2',             when='+tpetra')
@@ -67,7 +67,7 @@ class Platoanalyze(CMakePackage, CudaPackage):
 
     depends_on('arborx~mpi~cuda~serial @v1.1',              when='+meshmap')
     depends_on('amgx',                                      when='+amgx')
-    depends_on('omega-h@9.34.1:',                           type=('build', 'link', 'run'))
+    depends_on('omega-h@develop',                           type=('build', 'link', 'run'))
     depends_on('esp',                                       when='+esp')
     depends_on('omega-h+cuda',                              when='+cuda')
     depends_on('python @3.8:',                              when='+esp@beta')
