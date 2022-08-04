@@ -40,6 +40,7 @@ class Trilinos(CMakePackage, CudaPackage, ROCmPackage):
 
     version('master', branch='master')
     version('develop', branch='develop')
+    version('tacho_working_but_before_modern_cmake', commit='245898d71ebfd26b2a2b4d21887fe1c9b72ca8f9')
     version('13.4.0', commit='0976cf2a8f9ee2991f4fb479f1056ca569eb22b9') # tag trilinos-release-13-4-0
     version('13.2.0', commit='4a5f7906a6420ee2f9450367e9cc95b28c00d744')  # tag trilinos-release-13-2-0
     version('13.0.1', commit='4796b92fb0644ba8c531dd9953e7a4878b05c62d', preferred=True)  # tag trilinos-release-13-0-1

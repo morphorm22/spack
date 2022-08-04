@@ -51,7 +51,7 @@ class Platoengine(CMakePackage, CudaPackage):
     conflicts( '~services', when='+dakota')
 
     depends_on( 'ipopt@3.12.8', when='+ipopt')
-    depends_on( 'trilinos@13.4+exodus+chaco+intrepid+shards gotype=int cxxstd=14')
+    depends_on( 'trilinos@tacho_working_but_before_modern_cmake+exodus+chaco+intrepid+shards gotype=int cxxstd=14')
     depends_on( 'mpi',            type=('build','link','run'))
     depends_on( 'cmake@3.0.0:',   type='build')
     depends_on( 'trilinos+rol',                           when='+rol')

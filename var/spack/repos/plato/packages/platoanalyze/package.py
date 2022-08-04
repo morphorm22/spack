@@ -53,7 +53,7 @@ class Platoanalyze(CMakePackage, CudaPackage):
     variant( 'tacho',      default=False,    description='Compile with Tacho'           )
 
     depends_on('platoengine+analyze_tests',                                       when='+mpmd')
-    depends_on('trilinos@13.4+kokkos+kokkoskernels gotype=int')
+    depends_on('trilinos@tacho_working_but_before_modern_cmake+kokkos+kokkoskernels gotype=int')
     depends_on('trilinos+cuda+wrapper', when='+cuda')
     depends_on('trilinos+openmp', when='+openmp')
     depends_on('trilinos+tacho', when='+tacho')
