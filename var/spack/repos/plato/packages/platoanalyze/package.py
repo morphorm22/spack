@@ -50,6 +50,7 @@ class Platoanalyze(CMakePackage, CudaPackage):
     variant( 'python',     default=False,    description='Compile with python'          )
     variant( 'rocket',     default=False,    description='Builds ROCKET and ROCKET_MPMD')
     variant( 'tpetra',     default=False,    description='Compile with Tpetra'          )
+    variant( 'verificationtests', default=False, description='Compile with verification tests' )
 
     depends_on('platoengine+analyze_tests',                                       when='+mpmd')
     depends_on('trilinos@13.2+kokkos+kokkoskernels gotype=int')
@@ -73,6 +74,9 @@ class Platoanalyze(CMakePackage, CudaPackage):
     depends_on('python @3.8:',                              when='+esp@beta')
     depends_on('python @3.8:',                              when='+esp@120Lin')
     depends_on('platoengine+esp',                           when='+esp')
+
+    depends_on('paraview+python3 build_edition=canonical',  when='+verificationtests')
+    depends_on('gnuplot',  when='+verificationtests')
 
     conflicts('+enginemesh', when='~mpmd')
     conflicts('+geometry', when='~mpmd')
@@ -145,6 +149,11 @@ class Platoanalyze(CMakePackage, CudaPackage):
 
         if '~unittests' in spec:
           options.extend([ '-DPLATOANALYZE_UNIT_TEST=OFF' ])
+
+        if '+verificationtests' in spec:
+          options.extend(['-DPLATOANALYZE_SMOKE_TEST=ON'])
+        elif '~verificationtests' in spec:
+          options.extend(['-DPLATOANALYZE_SMOKE_TEST=OFF'])
 
         return options
 
