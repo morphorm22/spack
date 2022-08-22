@@ -67,7 +67,7 @@ class Platoanalyze(CMakePackage, CudaPackage):
 
     depends_on('arborx~mpi~cuda~serial @v1.1',              when='+meshmap')
     depends_on('amgx',                                      when='+amgx')
-    depends_on('omega-h@develop',                           type=('build', 'link', 'run'))
+    depends_on('omega-h@develop_bb6b',                      type=('build', 'link', 'run'))
     depends_on('esp',                                       when='+esp')
     depends_on('omega-h+cuda',                              when='+cuda')
     depends_on('python @3.8:',                              when='+esp@beta')
