@@ -40,6 +40,7 @@ class Trilinos(CMakePackage, CudaPackage, ROCmPackage):
 
     version('master', branch='master')
     version('develop', branch='develop')
+    version('13.4.0', commit='0976cf2a8f9ee2991f4fb479f1056ca569eb22b9') # tag trilinos-release-13-4-0
     version('13.2.0', commit='4a5f7906a6420ee2f9450367e9cc95b28c00d744')  # tag trilinos-release-13-2-0
     version('13.0.1', commit='4796b92fb0644ba8c531dd9953e7a4878b05c62d', preferred=True)  # tag trilinos-release-13-0-1
     version('13.0.0', commit='9fec35276d846a667bc668ff4cbdfd8be0dfea08')  # tag trilinos-release-13-0-0
@@ -398,8 +399,6 @@ class Trilinos(CMakePackage, CudaPackage, ROCmPackage):
         if is_cce:
             return (None, None, flags)
         return (flags, None, None)
-
-    patch('seacas_remove_zlib.patch') #added by plato
 
     def url_for_version(self, version):
         url = "https://github.com/trilinos/Trilinos/archive/trilinos-release-{0}.tar.gz"
