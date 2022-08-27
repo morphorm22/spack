@@ -56,7 +56,7 @@ class Platoanalyze(CMakePackage, CudaPackage):
     variant( 'verificationtests', default=False, description='Compile with verification tests' )
 
     depends_on('platoengine+analyze_tests',                                       when='+mpmd')
-    depends_on('trilinos@13.2.0+kokkos+kokkoskernels+exodus gotype=int cxxstd=14')
+    depends_on('trilinos@13.4+kokkos+kokkoskernels+exodus gotype=int cxxstd=14')
     depends_on('trilinos+cuda+wrapper', when='+cuda')
     depends_on('trilinos+openmp', when='+openmp')
     depends_on('trilinos+tpetra+belos+ifpack2+amesos2+muelu+zoltan2',             when='+tpetra')
@@ -85,7 +85,7 @@ class Platoanalyze(CMakePackage, CudaPackage):
     conflicts('+meshmap',  when='~mpmd')
     conflicts('+amgx',     when='~cuda')
     conflicts('+openmp',   when='+cuda')
-    depends_on('omega-h@9.34.1:', type=('build', 'link', 'run'), when='+omega-h')
+    depends_on('omega-h@develop_bb6b', type=('build', 'link', 'run'), when='+omega-h')
     depends_on('omega-h+cuda',                              when='+cuda+omega-h')
 
     conflicts('~epetra',    when='~tpetra')
