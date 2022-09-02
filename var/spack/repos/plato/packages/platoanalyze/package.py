@@ -166,9 +166,9 @@ class Platoanalyze(CMakePackage, CudaPackage):
           options.extend([ '-DPLATOANALYZE_UNIT_TEST=OFF' ])
 
         if '+verificationtests' in spec:
-          options.extend(['-DPLATOANALYZE_SMOKE_TEST=ON'])
+          options.extend(['-DPLATOANALYZE_SMOKE_TESTS=ON'])
         elif '~verificationtests' in spec:
-          options.extend(['-DPLATOANALYZE_SMOKE_TEST=OFF'])
+          options.extend(['-DPLATOANALYZE_SMOKE_TESTS=OFF'])
 
         return options
 
