@@ -6,7 +6,7 @@
 from spack import *
 
 
-class Platoengine(CMakePackage):
+class Platoengine(CMakePackage, CudaPackage):
     """Plato Engine - Platform for Topology Optimization"""
     
     homepage = "https://www.sandia.gov/plato3d/"
@@ -25,7 +25,6 @@ class Platoengine(CMakePackage):
     variant( 'unit_testing',   default=True,    description='Add unit testing'                )
     variant( 'albany_tests',   default=False,   description='Configure Albany tests'          )
     variant( 'analyze_tests',  default=False,   description='Configure Analyze tests'         )
-    variant( 'cuda',           default=False,   description='Compile with cuda'               )
     variant( 'esp',            default=False,    description='Turn on esp'                     )
     variant( 'expy',           default=False,   description='Compile exodus/python API'       )
     variant( 'geometry',       default=False,   description='Turn on Plato Geometry'          )
@@ -52,14 +51,13 @@ class Platoengine(CMakePackage):
     conflicts( '~services', when='+dakota')
 
     depends_on( 'ipopt@3.12.8', when='+ipopt')
-    depends_on( 'trilinos@rol_update+exodus+chaco+intrepid+shards gotype=int cxxstd=14')
+    depends_on( 'trilinos@13.4+exodus+chaco+intrepid+shards gotype=int cxxstd=14')
     depends_on( 'mpi',            type=('build','link','run'))
     depends_on( 'cmake@3.0.0:',   type='build')
     depends_on( 'trilinos+rol',                           when='+rol')
-    depends_on( 'trilinos+zlib+pnetcdf+boost \
-                                       +stk',           when='+stk')
-    depends_on( 'trilinos+percept+zoltan+zlib+pnetcdf+boost+stk',  when='+prune')
-    depends_on( 'trilinos+zlib+pnetcdf+boost+intrepid2+minitensor+pamgen', when='+geometry')
+    depends_on( 'trilinos+boost+stk',                     when='+stk')
+    depends_on( 'trilinos+percept+zoltan+boost+stk',      when='+prune')
+    depends_on( 'trilinos+boost+intrepid2+minitensor+pamgen', when='+geometry')
     depends_on( 'googletest',                                      when='+unit_testing' )
     depends_on( 'python@3.8:3.999', type=('build', 'link', 'run'), when='+expy'    )
     depends_on( 'python@2.6:2.999', type=('build', 'link', 'run'), when='+esp@117Lin' )
@@ -68,7 +66,7 @@ class Platoengine(CMakePackage):
     depends_on( 'nlopt',                                      when='+expy'         )
     # py-setuptools later than v44.1.0 require python 3.x
     depends_on( 'py-numpy@1.16.5 ^py-setuptools@44.1.0',      when='+expy'         )
-    depends_on( 'trilinos+cuda+wrapper',                              when='+cuda')
+    depends_on( 'trilinos+cuda+wrapper',                      when='+cuda')
 
     depends_on( 'esp', when='+esp')
     depends_on( 'dakota', when='+dakota')
@@ -108,11 +106,11 @@ class Platoengine(CMakePackage):
 
         if '+unit_testing' in spec:
           options.extend([ '-DUNIT_TESTING=ON' ])
-          gtest_dir = spec['googletest'].prefix
+          # gtest_dir = spec['googletest'].prefix
         else:
           options.extend([ '-DUNIT_TESTING=OFF' ])
 
-          options.extend([ '-DGTEST_HOME:FILEPATH={0}'.format(gtest_dir) ])
+          # options.extend([ '-DGTEST_HOME:FILEPATH={0}'.format(gtest_dir) ])
 
         if '+iso' in spec:
           options.extend([ '-DENABLE_ISO=ON' ])

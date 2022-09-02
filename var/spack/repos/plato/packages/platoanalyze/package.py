@@ -25,7 +25,7 @@
 from spack import *
 
 
-class Platoanalyze(CMakePackage):
+class Platoanalyze(CMakePackage, CudaPackage):
     """Plato Analyze"""
 
     homepage = "https://github.com/platoengine/platoanalyze"
@@ -37,51 +37,59 @@ class Platoanalyze(CMakePackage):
     version('develop', branch='develop', submodules=True, preferred=True)
     version('release-v0.1.0', branch='release-v0.1.0', submodules=True)
 
+    variant( 'cuda',       default=True,     description='Compile with Nvidia CUDA'     )
     variant( 'amgx',       default=True,     description='Compile with AMGX'            )
-    variant( 'cuda',       default=True,     description='Compile with cuda'            )
     variant( 'meshmap',    default=True,     description='Compile with MeshMap'         )
     variant( 'mpmd',       default=True,     description='Compile with mpmd'            )
     variant( 'physics',    default=True,     description='Compile with all Physics'      )
     variant( 'helmholtz',  default=True,     description='Compile with Helmholtz filter' )
     variant( 'unittests',  default=True,     description='Compile with unit tests' )
     variant( 'enginemesh', default=True,     description='Compile with enginemesh as default' )
-    variant( 'esp',        default=False,     description='Compile with ESP'             )
+    variant( 'omega-h',    default=False,    description='Compile with enginemesh as default' )
+    variant( 'esp',        default=False,    description='Compile with ESP'             )
     variant( 'geometry',   default=False,    description='Compile with MLS geometry'    )
     variant( 'openmp',     default=False,    description='Compile with openmp'          )
-    variant( 'python',     default=False,     description='Compile with python'          )
+    variant( 'python',     default=False,    description='Compile with python'          )
     variant( 'rocket',     default=False,    description='Builds ROCKET and ROCKET_MPMD')
     variant( 'tpetra',     default=False,    description='Compile with Tpetra'          )
+    variant( 'epetra',     default=True,     description='Compile with Epetra'          )
+    variant( 'verificationtests', default=False, description='Compile with verification tests' )
 
     depends_on('platoengine+analyze_tests',                                       when='+mpmd')
-    depends_on('trilinos@rol_update+kokkos+kokkoskernels gotype=int')
+    depends_on('trilinos@13.4+kokkos+kokkoskernels+exodus gotype=int cxxstd=14')
     depends_on('trilinos+cuda+wrapper', when='+cuda')
     depends_on('trilinos+openmp', when='+openmp')
-    depends_on('trilinos+tpetra+belos+ifpack2+amesos2+superlu+muelu+zoltan2',     when='+tpetra')
+    depends_on('trilinos+tpetra+belos+ifpack2+amesos2+muelu+zoltan2',             when='+tpetra')
     depends_on('trilinos~tpetra~amesos2~ifpack2~belos~muelu~zoltan2',             when='~tpetra')
+    depends_on('trilinos~epetra',                                                 when='~epetra')
     depends_on('trilinos+pamgen',                                                 when='+geometry')
     depends_on('platoengine+geometry',                                            when='+geometry')
-    depends_on('platoengine~dakota',                                              when='+cuda')
+    depends_on('platoengine~dakota',                                              when='+cuda+mpmd')
     depends_on('cmake@3.0.0:', type='build')
-    depends_on('python @3.8:3.999',                          when='+python')
+    depends_on('python @3.8:',                               when='+python')
     depends_on('platoengine+expy',                           when='+python')
     depends_on('netlib-lapack')
 
-    depends_on('arborx~mpi~cuda~serial @header_only',       when='+meshmap')
+    depends_on('arborx~mpi~cuda~serial @v1.1',              when='+meshmap')
     depends_on('amgx',                                      when='+amgx')
-    depends_on('omega-h@9.34.1:',                           type=('build', 'link', 'run'))
     depends_on('esp',                                       when='+esp')
-    depends_on('python @3.8:3.999',                          when='+esp@beta')
-    depends_on('python @3.8:3.999',                          when='+esp@120Lin')
-    depends_on('python @2.6:2.999',                          when='+esp@117Lin')
-    depends_on('platoengine+esp',                                       when='+esp')
-    depends_on('cuda@10.0:10.2.999', when='+cuda')
-    depends_on('omega-h+cuda', when='+cuda')
+    depends_on('python @3.8:',                              when='+esp@beta')
+    depends_on('python @3.8:',                              when='+esp@120Lin')
+    depends_on('platoengine+esp',                           when='+esp')
+
+    depends_on('paraview+python3 build_edition=canonical',  when='+verificationtests')
+    depends_on('gnuplot',  when='+verificationtests')
 
     conflicts('+enginemesh', when='~mpmd')
     conflicts('+geometry', when='~mpmd')
     conflicts('+meshmap',  when='~mpmd')
     conflicts('+amgx',     when='~cuda')
-    conflicts('+openmp',     when='+cuda')
+    conflicts('+openmp',   when='+cuda')
+    depends_on('omega-h@develop_bb6b', type=('build', 'link', 'run'), when='+omega-h')
+    depends_on('omega-h+cuda',                              when='+cuda+omega-h')
+
+    conflicts('~epetra',    when='~tpetra')
+    conflicts('~omega-h',   when='~enginemesh')
     conflicts('+unittests', when='~physics')
 
     def cmake_args(self):
@@ -99,10 +107,12 @@ class Platoanalyze(CMakePackage):
           platoengine_dir = spec['platoengine'].prefix
           options.extend([ '-DPLATOENGINE_PREFIX:PATH={0}'.format(platoengine_dir) ])
 
-          omega_h_dir = spec['omega-h'].prefix
-          options.extend([ '-DOMEGA_H_PREFIX:PATH={0}'.format(omega_h_dir) ])
         else:
           options.extend([ '-DPLATOANALYZE_ENABLE_MPMD=OFF' ])
+
+        if '+omega-h' in spec:
+          omega_h_dir = spec['omega-h'].prefix
+          options.extend([ '-DOMEGA_H_PREFIX:PATH={0}'.format(omega_h_dir) ])
 
         if '+python' in spec:
           options.extend([ '-DPLATOANALYZE_ENABLE_PYTHON=ON' ])
@@ -113,13 +123,17 @@ class Platoanalyze(CMakePackage):
         if '+geometry' in spec:
           options.extend([ '-DPLATOANALYZE_ENABLE_GEOMETRY=ON' ])
 
+        if '+cuda' in spec:
+          options.extend([ '-DPLATOANALYZE_ENABLE_CUDA=ON' ])
+
         if '+meshmap' in spec:
           options.extend([ '-DPLATOANALYZE_ENABLE_MESHMAP=ON' ])
 
         if '+tpetra' in spec:
           options.extend([ '-DPLATOANALYZE_ENABLE_TPETRA=ON' ])
-          superlu_dir = spec['superlu'].prefix
-          options.extend([ '-DSuperLU_PREFIX:PATH={0}'.format(superlu_dir) ])
+
+        if '+epetra' in spec:
+          options.extend([ '-DPLATOANALYZE_ENABLE_EPETRA=ON' ])
 
         if '+esp' in spec:
           options.extend([ '-DPLATOANALYZE_ENABLE_ESP=ON' ])
@@ -150,6 +164,11 @@ class Platoanalyze(CMakePackage):
 
         if '~unittests' in spec:
           options.extend([ '-DPLATOANALYZE_UNIT_TEST=OFF' ])
+
+        if '+verificationtests' in spec:
+          options.extend(['-DPLATOANALYZE_SMOKE_TEST=ON'])
+        elif '~verificationtests' in spec:
+          options.extend(['-DPLATOANALYZE_SMOKE_TEST=OFF'])
 
         return options
 

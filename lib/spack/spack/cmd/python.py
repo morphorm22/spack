@@ -5,12 +5,12 @@
 
 from __future__ import print_function
 
-import os
-import sys
-import code
 import argparse
+import code
+import os
 import platform
 import runpy
+import sys
 
 import llnl.util.tty as tty
 
@@ -23,7 +23,7 @@ level = "long"
 
 def setup_parser(subparser):
     subparser.add_argument(
-        '-V', '--version', action='store_true',
+        '-V', '--version', action='store_true', dest='python_version',
         help='print the Python version number and exit')
     subparser.add_argument(
         '-c', dest='python_command', help='command to execute')
@@ -34,13 +34,20 @@ def setup_parser(subparser):
         '-m', dest='module', action='store',
         help='run library module as a script')
     subparser.add_argument(
+        '--path', action='store_true', dest='show_path',
+        help='show path to python interpreter that spack uses')
+    subparser.add_argument(
         'python_args', nargs=argparse.REMAINDER,
         help="file to run plus arguments")
 
 
 def python(parser, args, unknown_args):
-    if args.version:
+    if args.python_version:
         print('Python', platform.python_version())
+        return
+
+    if args.show_path:
+        print(sys.executable)
         return
 
     if args.module:

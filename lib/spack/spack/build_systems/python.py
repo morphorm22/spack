@@ -6,13 +6,19 @@ import inspect
 import os
 import shutil
 
+import llnl.util.tty as tty
+from llnl.util.filesystem import (
+    filter_file,
+    find,
+    get_filetype,
+    path_contains_subdirectory,
+    same_path,
+    working_dir,
+)
+from llnl.util.lang import match_predicate
+
 from spack.directives import extends
 from spack.package import PackageBase, run_after
-
-from llnl.util.filesystem import (working_dir, get_filetype, filter_file,
-                                  path_contains_subdirectory, same_path, find)
-from llnl.util.lang import match_predicate
-import llnl.util.tty as tty
 
 
 class PythonPackage(PackageBase):
@@ -121,24 +127,25 @@ class PythonPackage(PackageBase):
             list: list of strings of module names
         """
         modules = []
+        root = os.path.join(
+            self.prefix,
+            self.spec['python'].package.config_vars['python_lib']['true']['false'],
+        )
 
-        # Python libraries may be installed in lib or lib64
-        # See issues #18520 and #17126
-        for lib in ['lib', 'lib64']:
-            root = os.path.join(self.prefix, lib, 'python{0}'.format(
-                self.spec['python'].version.up_to(2)), 'site-packages')
-            # Some Python libraries are packages: collections of modules
-            # distributed in directories containing __init__.py files
-            for path in find(root, '__init__.py', recursive=True):
-                modules.append(path.replace(root + os.sep, '', 1).replace(
-                    os.sep + '__init__.py', '').replace('/', '.'))
-            # Some Python libraries are modules: individual *.py files
-            # found in the site-packages directory
-            for path in find(root, '*.py', recursive=False):
-                modules.append(path.replace(root + os.sep, '', 1).replace(
-                    '.py', '').replace('/', '.'))
+        # Some Python libraries are packages: collections of modules
+        # distributed in directories containing __init__.py files
+        for path in find(root, '__init__.py', recursive=True):
+            modules.append(path.replace(root + os.sep, '', 1).replace(
+                os.sep + '__init__.py', '').replace('/', '.'))
+
+        # Some Python libraries are modules: individual *.py files
+        # found in the site-packages directory
+        for path in find(root, '*.py', recursive=False):
+            modules.append(path.replace(root + os.sep, '', 1).replace(
+                '.py', '').replace('/', '.'))
 
         tty.debug('Detected the following modules: {0}'.format(modules))
+
         return modules
 
     def setup_file(self):
@@ -243,7 +250,24 @@ class PythonPackage(PackageBase):
         if ('py-setuptools' == spec.name or          # this is setuptools, or
             'py-setuptools' in spec._dependencies and  # it's an immediate dep
             'build' in spec._dependencies['py-setuptools'].deptypes):
-            args += ['--single-version-externally-managed', '--root=/']
+            args += ['--single-version-externally-managed']
+
+        # Get all relative paths since we set the root to `prefix`
+        # We query the python with which these will be used for the lib and inc
+        # directories. This ensures we use `lib`/`lib64` as expected by python.
+        pure_site_packages_dir = spec['python'].package.config_vars[
+            'python_lib']['false']['false']
+        plat_site_packages_dir = spec['python'].package.config_vars[
+            'python_lib']['true']['false']
+        inc_dir = spec['python'].package.config_vars['python_inc']['true']
+
+        args += ['--root=%s' % prefix,
+                 '--install-purelib=%s' % pure_site_packages_dir,
+                 '--install-platlib=%s' % plat_site_packages_dir,
+                 '--install-scripts=bin',
+                 '--install-data=',
+                 '--install-headers=%s' % inc_dir
+                 ]
 
         return args
 
@@ -369,11 +393,15 @@ class PythonPackage(PackageBase):
                 self.spec
             )
         )
+
+        to_remove = []
         for src, dst in merge_map.items():
             if ignore_namespace and namespace_init(dst):
                 continue
 
             if global_view or not path_contains_subdirectory(src, bin_dir):
-                view.remove_file(src, dst)
+                to_remove.append(dst)
             else:
                 os.remove(dst)
+
+        view.remove_files(to_remove)
