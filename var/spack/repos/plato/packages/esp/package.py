@@ -23,7 +23,7 @@ class Esp(Package):
       copy_tree('EngSketchPad/lib', prefix.lib)
 
       if (spec.satisfies('@beta')):
-        copy_tree('OpenCASCADE-7.6.0/lib', prefix.lib)
+        # copy_tree('EngSketchPad/lib', prefix.lib)
         copy_tree('EngSketchPad/pyESP', prefix.pyESP)
       elif (spec.satisfies('@120Lin')):
         copy_tree('OpenCASCADE-7.4.1/lib', prefix.lib)
