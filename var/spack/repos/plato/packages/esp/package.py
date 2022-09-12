@@ -6,8 +6,8 @@ class Esp(Package):
 
     homepage = "https://acdl.mit.edu/ESP/"
 
-    version('121Lin', sha256='c9ed01f6acf2cc1b0d2a035a563efa8e0ab5b857269fdd6776596abffc98dc89', url='https://acdl.mit.edu/ESP/PreBuilts/ESP121Lin.tgz')
-    version('120Lin', sha256='d16c7d90d4e1b46973113e47f474b59057df35f9bd55680c3430aface1571ba9', url='https://acdl.mit.edu/ESP/archive/ESP120Lin.tgz',preferred=True)
+    version('121Lin', sha256='c9ed01f6acf2cc1b0d2a035a563efa8e0ab5b857269fdd6776596abffc98dc89', url='https://acdl.mit.edu/ESP/PreBuilts/ESP121Lin.tgz',preferred=True)
+    version('120Lin', sha256='d16c7d90d4e1b46973113e47f474b59057df35f9bd55680c3430aface1571ba9', url='https://acdl.mit.edu/ESP/archive/ESP120Lin.tgz')
     version('117Lin', sha256='bd6418ee9dafabdc17c58449c379535f4f148f1f67730074297c605b5e10e1a0', url='https://acdl.mit.edu/ESP/archive/ESP117Lin.tgz')
 
     depends_on( 'python@2.6:2.999', type=('run'), when='@117Lin' )
