@@ -70,7 +70,7 @@ class Platoengine(CMakePackage, CudaPackage):
 
     depends_on( 'esp', when='+esp')
     depends_on( 'dakota', when='+dakota')
-    depends_on( 'numdiff', when='+analyze_tests+esp+dakota')
+    depends_on( 'numdiff', when='+regression')
 
     def cmake_args(self):
         spec = self.spec
@@ -103,6 +103,8 @@ class Platoengine(CMakePackage, CudaPackage):
         if '+regression' in spec:
           options.extend([ '-DREGRESSION=ON' ])
           options.extend([ '-DSEACAS=ON' ])
+          numdiff_dir = spec['numdiff'].prefix
+          options.extend([ '-DNUMDIFF_PATH:FILEPATH={0}'.format(numdiff_dir) ])
 
         if '+unit_testing' in spec:
           options.extend([ '-DUNIT_TESTING=ON' ])
@@ -156,9 +158,6 @@ class Platoengine(CMakePackage, CudaPackage):
 
         if '+services' in spec:
           options.extend([ '-DENABLE_PLATO_SERVICES=ON' ])
-        if '+analyze_tests+esp+dakota' in spec:
-          numdiff_dir = spec['numdiff'].prefix
-          options.extend([ '-DNUMDIFF_PATH:FILEPATH={0}'.format(numdiff_dir) ])
 
         if '+sierra_tests' in spec:
           options.extend([ '-DSIERRA_TESTS_ENABLED=ON' ])
