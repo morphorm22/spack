@@ -293,7 +293,7 @@ class Trilinos(CMakePackage, CudaPackage, ROCmPackage):
     conflicts('+wrapper', when='%clang')
 
     # Old trilinos fails with new CUDA (see #27180)
-    conflicts('@:13.0.1 +cuda', when='^cuda@11:')
+    conflicts('@0.0.0:13.0.1 +cuda', when='^cuda@11:')
     # Build hangs with CUDA 11.6 (see #28439)
     conflicts('+cuda +stokhos', when='^cuda@11.6:')
 
