@@ -52,13 +52,15 @@ class Platoanalyze(CMakePackage, CudaPackage):
     variant( 'python',     default=False,    description='Compile with python'          )
     variant( 'rocket',     default=False,    description='Builds ROCKET and ROCKET_MPMD')
     variant( 'tpetra',     default=False,    description='Compile with Tpetra'          )
+    variant( 'tacho',      default=False,    description='Compile with Tacho'           )
     variant( 'epetra',     default=True,     description='Compile with Epetra'          )
     variant( 'verificationtests', default=False, description='Compile with verification tests' )
 
     depends_on('platoengine+analyze_tests',                                       when='+mpmd')
-    depends_on('trilinos@13.4+kokkos+kokkoskernels+exodus gotype=int cxxstd=14')
+    depends_on('trilinos@tacho_working_but_before_modern_cmake+kokkos+kokkoskernels+exodus gotype=int cxxstd=14')
     depends_on('trilinos+cuda+wrapper', when='+cuda')
     depends_on('trilinos+openmp', when='+openmp')
+    depends_on('trilinos+tacho', when='+tacho')
     depends_on('trilinos+tpetra+belos+ifpack2+amesos2+muelu+zoltan2',             when='+tpetra')
     depends_on('trilinos~tpetra~amesos2~ifpack2~belos~muelu~zoltan2',             when='~tpetra')
     depends_on('trilinos~epetra',                                                 when='~epetra')
@@ -131,6 +133,9 @@ class Platoanalyze(CMakePackage, CudaPackage):
 
         if '+tpetra' in spec:
           options.extend([ '-DPLATOANALYZE_ENABLE_TPETRA=ON' ])
+
+        if '+tacho' in spec:
+          options.extend([ '-DPLATOANALYZE_ENABLE_TACHO=ON' ])
 
         if '+epetra' in spec:
           options.extend([ '-DPLATOANALYZE_ENABLE_EPETRA=ON' ])
