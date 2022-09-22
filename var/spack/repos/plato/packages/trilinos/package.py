@@ -40,6 +40,7 @@ class Trilinos(CMakePackage, CudaPackage, ROCmPackage):
 
     version('master', branch='master')
     version('develop', branch='develop')
+    version('tacho_working_but_before_modern_cmake', commit='245898d71ebfd26b2a2b4d21887fe1c9b72ca8f9')
     version('13.4.0', commit='0976cf2a8f9ee2991f4fb479f1056ca569eb22b9') # tag trilinos-release-13-4-0
     version('13.2.0', commit='4a5f7906a6420ee2f9450367e9cc95b28c00d744')  # tag trilinos-release-13-2-0
     version('13.0.1', commit='4796b92fb0644ba8c531dd9953e7a4878b05c62d', preferred=True)  # tag trilinos-release-13-0-1
@@ -124,6 +125,7 @@ class Trilinos(CMakePackage, CudaPackage, ROCmPackage):
     variant('stk',          default=False, description='Compile with STK')
     variant('shards',       default=False, description='Compile with Shards')
     variant('shylu',        default=False, description='Compile with ShyLU')
+    variant('tacho',        default=False, description='Compile with Tacho')
     variant('stokhos',      default=False, description='Compile with Stokhos')
     variant('stratimikos',  default=False, description='Compile with Stratimikos')
     variant('teko',         default=False, description='Compile with Teko')
@@ -318,6 +320,7 @@ class Trilinos(CMakePackage, CudaPackage, ROCmPackage):
     depends_on('libx11', when='+x11')
     depends_on('matio', when='+exodus')
     depends_on('metis', when='+zoltan')
+    depends_on('metis', when='+tacho')
     depends_on('mpi', when='+mpi')
     depends_on('netcdf-c', when="+exodus")
     depends_on('parallel-netcdf', when='+exodus+mpi')
@@ -547,6 +550,8 @@ class Trilinos(CMakePackage, CudaPackage, ROCmPackage):
                                 'epetraextgraphreorderings'),
             define_from_variant('Amesos2_ENABLE_Basker', 'basker'),
             define_from_variant('Amesos2_ENABLE_LAPACK', 'amesos2'),
+            define_trilinos_enable('ShyLU_NodeTacho', 'tacho'),
+            define_from_variant('Tacho_ENABLE_INT_INT', 'tacho'),
         ])
 
         if '+dtk' in spec:
