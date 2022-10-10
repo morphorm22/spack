@@ -92,6 +92,7 @@ class Platoanalyze(CMakePackage, CudaPackage):
 
     conflicts('~epetra',    when='~tpetra')
     conflicts('~omega-h',   when='~enginemesh')
+    conflicts('+omega-h',   when='+enginemesh')
     conflicts('+unittests', when='~physics')
 
     def cmake_args(self):
@@ -121,6 +122,8 @@ class Platoanalyze(CMakePackage, CudaPackage):
 
         if '+enginemesh' in spec:
           options.extend([ '-DPLATOANALYZE_ENABLE_ENGINEMESH=ON' ])
+        else:
+          options.extend([ '-DPLATOANALYZE_ENABLE_ENGINEMESH=OFF' ])
 
         if '+geometry' in spec:
           options.extend([ '-DPLATOANALYZE_ENABLE_GEOMETRY=ON' ])
