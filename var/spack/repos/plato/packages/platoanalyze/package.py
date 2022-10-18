@@ -54,7 +54,9 @@ class Platoanalyze(CMakePackage, CudaPackage):
     variant( 'tpetra',     default=False,    description='Compile with Tpetra'          )
     variant( 'tacho',      default=False,    description='Compile with Tacho'           )
     variant( 'epetra',     default=True,     description='Compile with Epetra'          )
-    variant( 'verificationtests', default=False, description='Compile with verification tests' )
+
+    variant( 'verificationtests', default=True, description='Compile with verification tests' )
+    variant( 'verificationdoc', default=False,  description='Compile with VerificationDoc target' )
 
     depends_on('platoengine+analyze_tests',                                       when='+mpmd')
     depends_on('trilinos@tacho_working_but_before_modern_cmake+kokkos+kokkoskernels+exodus gotype=int cxxstd=14')
@@ -70,6 +72,7 @@ class Platoanalyze(CMakePackage, CudaPackage):
     depends_on('cmake@3.0.0:', type='build')
     depends_on('python @3.8:',                               when='+python')
     depends_on('platoengine+expy',                           when='+python')
+    depends_on('platoengine+expy',                           when='+verificationtests')
     depends_on('netlib-lapack')
 
     depends_on('arborx~mpi~cuda~serial @v1.1',              when='+meshmap')
@@ -79,8 +82,13 @@ class Platoanalyze(CMakePackage, CudaPackage):
     depends_on('python @3.8:',                              when='+esp@120Lin')
     depends_on('platoengine+esp',                           when='+esp')
 
-    depends_on('paraview+python3 build_edition=canonical',  when='+verificationtests')
-    depends_on('gnuplot',  when='+verificationtests')
+    # omega-h writes vtk files so paraview is required for verification tests
+    # remove this dependency when omega-h is no longer a variant
+    depends_on('paraview+python3 build_edition=canonical',  when='+verificationtests~enginemesh')
+
+    depends_on('paraview+python3 build_edition=canonical',  when='+verificationdocs')
+    depends_on('gnuplot',  when='+verificationdocs')
+    depends_on('doxygen',  when='+verificationdocs')
 
     conflicts('+enginemesh', when='~mpmd')
     conflicts('+geometry', when='~mpmd')
