@@ -86,9 +86,9 @@ class Platoanalyze(CMakePackage, CudaPackage):
     # remove this dependency when omega-h is no longer a variant
     depends_on('paraview+python3 build_edition=canonical',  when='+verificationtests~enginemesh')
 
-    depends_on('paraview+python3 build_edition=canonical',  when='+verificationdocs')
-    depends_on('gnuplot',  when='+verificationdocs')
-    depends_on('doxygen',  when='+verificationdocs')
+    depends_on('paraview+python3 build_edition=canonical',  when='+verificationdoc')
+    depends_on('gnuplot',  when='+verificationdoc')
+    depends_on('doxygen',  when='+verificationdoc')
 
     conflicts('+enginemesh', when='~mpmd')
     conflicts('+geometry', when='~mpmd')
