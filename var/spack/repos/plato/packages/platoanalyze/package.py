@@ -188,7 +188,7 @@ class Platoanalyze(CMakePackage, CudaPackage):
 
         return options
 
-    def setup_environment(self, spack_env, run_env):
+    def setup_run_environment(self, run_env):
 
         if '+python' in self.spec:
           run_env.prepend_path('PYTHONPATH', self.prefix.lib)

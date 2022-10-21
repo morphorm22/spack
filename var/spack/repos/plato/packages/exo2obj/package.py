@@ -44,6 +44,6 @@ class Exo2obj(CMakePackage):
 
         return options
 
-    def setup_environment(self, spack_env, run_env):
+    def setup_run_environment(self, run_env):
 
         run_env.prepend_path('PATH', self.prefix.bin)
