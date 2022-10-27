@@ -71,7 +71,7 @@ class Platoengine(CMakePackage, CudaPackage):
     depends_on( 'esp', when='+esp')
     depends_on( 'dakota', when='+dakota')
     depends_on( 'numdiff', when='+regression')
-    depends_on( 'boost')
+    depends_on( 'boost+filesystem+serialization+system+program_options+regex')
 
     def cmake_args(self):
         spec = self.spec
