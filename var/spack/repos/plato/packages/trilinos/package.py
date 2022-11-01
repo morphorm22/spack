@@ -601,6 +601,9 @@ class Trilinos(CMakePackage, CudaPackage, ROCmPackage):
                 define_trilinos_enable('Thyra' + pkg + 'Adapters', pkg.lower())
                 for pkg in ['Epetra', 'EpetraExt', 'Tpetra'])
 
+        if '+pamgen' in spec:
+            options.extend(['-DPamgen_ENABLE_Boost=OFF']) # Plato add, boost 1.79 not compiling with pamgen on gcc 7.5. Consider testing and removing when updating
+
         # ######################### TPLs #############################
 
         def define_tpl(trilinos_name, spack_name, have_dep):

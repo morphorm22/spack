@@ -38,7 +38,7 @@ class Esp(Package):
 
       copy_tree('EngSketchPad/ESP', prefix.ESP)
 
-    def setup_environment(self, spack_env, run_env):
+    def setup_run_environment(self, run_env):
 
       if (self.spec.satisfies('@117Lin')):
         run_env.prepend_path('PYTHONPATH', self.prefix.lib)

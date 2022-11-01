@@ -49,7 +49,9 @@ class Arborx(CMakePackage):
 
         return options
 
-    def setup_environment(self, spack_env, run_env):
+    def setup_run_environment(self, run_env):
         run_env.prepend_path('CPATH', join_path(self.prefix, 'include', 'details'))
+
+    def setup_build_environment(self, spack_env):
         spack_env.prepend_path('CPATH', join_path(self.prefix, 'include'))
         spack_env.prepend_path('CPATH', join_path(self.prefix, 'include', 'details'))
