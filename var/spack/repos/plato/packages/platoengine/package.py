@@ -67,6 +67,7 @@ class Platoengine(CMakePackage, CudaPackage):
     # py-setuptools later than v44.1.0 require python 3.x
     depends_on( 'py-numpy',      when='+expy'         )
     depends_on( 'trilinos+cuda+wrapper',                      when='+cuda')
+    depends_on( 'trilinos~cuda', when='+dakota')
 
     depends_on( 'esp', when='+esp')
     depends_on( 'dakota', when='+dakota')
